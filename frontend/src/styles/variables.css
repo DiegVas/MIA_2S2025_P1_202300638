@@ -1,0 +1,17 @@
+/* Variables CSS personalizadas */
+:root {
+  /* Colores */
+  --color-primary: #c3dd49;
+  --color-secondary: #fdfdff;
+  --color-background: #010100;
+  --color-text: #fdfdff;
+
+  /* Tipografía */
+  --font-family-primary: "Sequel Sans", system-ui, sans-serif;
+  --font-family-display: "Pixter Display", system-ui, sans-serif;
+
+  /* Transiciones */
+  --transition-fast: 0.2s ease-in-out;
+  --transition-normal: 0.25s ease-in-out;
+  --transition-slow: 0.3s ease-in-out;
+}

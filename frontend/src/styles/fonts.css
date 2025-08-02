@@ -1,0 +1,73 @@
+/* Fuentes Pixter */
+@font-face {
+  font-family: "Pixter Display";
+  src: url("../assets/Pixter/Pixter Display.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Pixter Display";
+  src: url("../assets/Pixter/Pixter Display Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Fuentes Sequel Sans */
+@font-face {
+  font-family: "Sequel Sans";
+  src: url("../assets/fonts/sequel/Sequel Sans Light Body.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sequel Sans";
+  src: url("../assets/fonts/sequel/Sequel Sans Book Body.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sequel Sans";
+  src: url("../assets/fonts/sequel/Sequel Sans Medium Disp.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sequel Sans";
+  src: url("../assets/fonts/sequel/Sequel Sans Semi Bold Body.otf") format("opentype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sequel Sans";
+  src: url("../assets/fonts/sequel/Sequel Sans Bold Body.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sequel Sans";
+  src: url("../assets/fonts/sequel/Sequel Sans Heavy Disp.otf") format("opentype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sequel Sans";
+  src: url("../assets/fonts/sequel/Sequel Sans Black Head.otf") format("opentype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
