@@ -1,0 +1,214 @@
+.welcome-enter-active,
+.welcome-leave-active {
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.welcome-enter-from {
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+}
+
+.welcome-leave-to {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
+}
+
+/* Animaciones para los mensajes individuales */
+.message-enter-active {
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.message-leave-active {
+  transition: all 0.3s cubic-bezier(0.55, 0.06, 0.68, 0.19);
+}
+
+.message-enter-from {
+  opacity: 0;
+  transform: translateX(-30px) scale(0.9);
+}
+
+.message-leave-to {
+  opacity: 0;
+  transform: translateX(30px) scale(0.9);
+}
+
+.message-move {
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Animación de limpieza */
+.messages-list.clearing {
+  animation: clearingMessages 0.3s cubic-bezier(0.55, 0.06, 0.68, 0.19);
+}
+
+@keyframes clearingMessages {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+.messages-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.messages-list {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  max-height: 100%;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.message-item {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1rem;
+  border-radius: 5px;
+  border-left: 3px solid var(--color-primary);
+  transition: all var(--transition-fast);
+  animation: messageAppear 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes messageAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-user {
+  border-left-color: var(--color-primary);
+}
+
+.message-system {
+  border-left-color: var(--color-secondary);
+}
+
+.message-system-error {
+  border-left-color: var(--color-error);
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.message-type-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.message-icon {
+  font-size: 1.2rem;
+  animation: iconBounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes iconBounce {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.message-type-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+.message-user .message-type-label {
+  color: var(--color-primary);
+}
+
+.message-system .message-type-label {
+  color: var(--color-secondary);
+}
+
+.message-system-error .message-type-label {
+  color: var(--color-error);
+}
+
+.message-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(4px);
+}
+
+.message-content {
+  font-family: var(--font-family-primary);
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+  word-wrap: break-word;
+  animation: contentFade 0.6s ease-out 0.2s both;
+}
+
+@keyframes contentFade {
+  0% {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-time {
+  font-size: 0.75rem;
+  color: rgba(253, 253, 255, 0.4);
+  font-family: var(--font-family-primary);
+  text-align: right;
+}
+
+/* Mejora en la animación del botón de limpiar */
+.messages-clean {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  width: 12%;
+  padding: 10px 15px;
+  margin-left: 5px;
+  background-color: var(--color-primary);
+  border-radius: 8px 8px 0px 0px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.messages-clean:active {
+  transform: translateY(1px) scale(0.98);
+  background-color: color-mix(in srgb, var(--color-primary) 75%, black 25%);
+}
