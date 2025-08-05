@@ -1,10 +1,18 @@
 <script setup>
 import ChatInput from "../common/ChatInput.vue";
-import { ref } from "vue";
+import { ref, nextTick } from "vue";
 import "../../styles/chat-animations.css";
 import { sendCommand } from "../../services/send_commands.ts";
 
 const messages = ref([]);
+const messagesContainer = ref(null); // Referencia al contenedor de mensajes
+
+const scrollToBottom = async () => {
+  await nextTick(); // Esperar a que el DOM se actualice
+  if (messagesContainer.value) {
+    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+  }
+};
 
 const handleSendMessage = async (message) => {
   console.log("Mensaje enviado:", message);
@@ -14,6 +22,8 @@ const handleSendMessage = async (message) => {
     timestamp: new Date(),
     type: "user",
   });
+
+  await scrollToBottom();
 
   // Crear el objeto comando con el formato correcto
   const commandObj = {
@@ -29,6 +39,8 @@ const handleSendMessage = async (message) => {
     id: crypto.randomUUID(),
     ...system_response,
   });
+
+  await scrollToBottom();
 };
 
 const handleInputChange = (value) => {};
@@ -75,6 +87,7 @@ const getMessageClass = (type) => {
 
         <div
           v-else
+          ref="messagesContainer"
           class="messages-list flex flex-col gap-4 overflow-y-auto max-h-full p-4 bg-gray-800/20 rounded-lg border border-gray-700"
         >
           <div

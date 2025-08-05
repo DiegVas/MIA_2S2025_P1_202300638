@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io"
 	"main/structs"
+	"main/utils"
 	"net/http"
 )
 
 func HandlePostUser(w http.ResponseWriter, r *http.Request) {
-    print("HandlePostUser called")
     
     if r.Method != http.MethodPost {
         http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
@@ -31,15 +31,48 @@ func HandlePostUser(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Procesar el comando (aquí solo lo imprimimos)
-    fmt.Printf("Comando recibido: %+v\n", command)
+    params, err := utils.ParseMkdisk(command.Command)
+    if err != nil {
+        fmt.Printf("HandlePostUser called - error: %s\n", err.Error()) 
 
-    // Responder con JSON
-    response := structs.Response{
-        Message: "Comando procesado exitosamente",
-        Data:    command,
-        Type:    "system",
+        // !  Si hay error en el parsing, enviar mensaje de error
+        response := structs.Response{
+            Message: fmt.Sprintf("Error en el comando: %s", err.Error()),
+            Data:    nil,
+            Type:    "system-error",
+        }
+        
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusBadRequest)
+        json.NewEncoder(w).Encode(response)
+        return
     }
+
+    err = utils.CreateDisk(params)
+    if err != nil {
+    // Si hay error al crear el disco
+    response := structs.Response{
+        Message: fmt.Sprintf("Error al crear disco: %s", err.Error()),
+        Data:    nil,
+        Type:    "system-error",
+    }
+    
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusInternalServerError)
+    json.NewEncoder(w).Encode(response)
+    return
+}
+
+    // Si el comando es válido y el disco se creó correctamente
+    confirmationMessage := fmt.Sprintf("Disco creado exitosamente - Size: %d, Unit: %c, Fit: %s, Path: %s", 
+    params.Size, params.Unit, params.Fit, params.Path)
+
+    // Responder con JSON de éxito
+    response := structs.Response{
+    Message: confirmationMessage,
+    Data:    params,
+    Type:    "system",
+}
 
     // Configurar headers de respuesta
     w.Header().Set("Content-Type", "application/json")
