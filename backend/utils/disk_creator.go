@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/binary"
-	"encoding/hex"
 	"fmt"
 	"main/structs"
 	"os"
@@ -14,12 +13,12 @@ import (
 )
 
 // Función para generar un UUID aleatorio
-func generateUUID() string {
+func generateUUID() []byte {
     uuid := make([]byte, 16)
     rand.Read(uuid)
     uuid[8] = uuid[8]&^0xc0 | 0x80
     uuid[6] = uuid[6]&^0xf0 | 0x40
-    return hex.EncodeToString(uuid)
+    return uuid
 }
 
 func CreateDisk(params *structs.MkdiskParams) error {
@@ -48,15 +47,22 @@ func CreateDisk(params *structs.MkdiskParams) error {
     mbr := structs.MBR{
         Mbr_size:       sizeInBytes,
         Mbr_partitions: 0,
-        Dsk_fit:        params.Fit[0], // Primer carácter del Fit (F, B o W)
     }
 
-    // Asignar timestamp y UUID
-    timestampStr := time.Now().Format(time.RFC3339)
+    // Asignar timestamp
+    timestampStr := time.Now().Format("2006-01-02")[:10]
     copy(mbr.Mbr_timestamp[:], timestampStr)
 
-    uuidStr := generateUUID()
-    copy(mbr.Mbr_uuid[:], uuidStr)
+    // Asignar UUID
+    uuidBytes := generateUUID()
+    copy(mbr.Mbr_uuid[:], uuidBytes)
+
+    // Asignar fit
+    if len(params.Fit) > 0 {
+        mbr.Dsk_fit[0] = params.Fit[0]
+    } else {
+        mbr.Dsk_fit[0] = 'F' // Valor por defecto First Fit
+    }
 
     // Escribir el MBR manualmente campo por campo
     var buf bytes.Buffer
@@ -73,8 +79,33 @@ func CreateDisk(params *structs.MkdiskParams) error {
     // Escribir número de particiones
     binary.Write(&buf, binary.LittleEndian, mbr.Mbr_partitions)
     
+    // Escribir particiones (inicialmente vacías)
+    for i := 0; i < 4; i++ {
+        // Part_status
+        buf.Write([]byte{0}) // Inactiva
+        
+        // Part_type
+        buf.Write([]byte{0}) // Tipo vacío
+        
+        // Part_fit
+        buf.Write([]byte{0}) // Fit vacío
+        
+        // Part_start, Part_size, Part_correlative
+        binary.Write(&buf, binary.LittleEndian, int32(0))
+        binary.Write(&buf, binary.LittleEndian, int32(0))
+        binary.Write(&buf, binary.LittleEndian, int32(0))
+        
+        // Part_name (16 bytes)
+        emptyName := make([]byte, 16)
+        buf.Write(emptyName)
+        
+        // Part_uuid (16 bytes)
+        emptyUUID := make([]byte, 16)
+        buf.Write(emptyUUID)
+    }
+    
     // Escribir fit del disco
-    binary.Write(&buf, binary.LittleEndian, mbr.Dsk_fit)
+    buf.Write(mbr.Dsk_fit[:])
     
     // Escribir el MBR completo al inicio del archivo
     _, err = file.Write(buf.Bytes())
@@ -86,12 +117,12 @@ func CreateDisk(params *structs.MkdiskParams) error {
     buffer := make([]byte, 1024)
     
     // Calcular cuántos bytes quedan por escribir después del MBR
-    bytesWritten := int64(buf.Len())
+    bytesWritten := int32(buf.Len())
     remainingBytes := sizeInBytes - bytesWritten
     
     // Escribir el resto del disco en bloques de 1024 bytes
     for remainingBytes > 0 {
-        writeSize := int64(len(buffer))
+        writeSize := int32(len(buffer))
         if remainingBytes < writeSize {
             writeSize = remainingBytes
         }

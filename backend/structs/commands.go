@@ -9,18 +9,57 @@ type MkdiskParams struct {
     Path string 
 }
 
-func (p *MkdiskParams) GetSizeInBytes() int64 {
+func (p *MkdiskParams) GetSizeInBytes() int32 {
     switch p.Unit {
     case 'K':
-        return int64(p.Size) * 1024
+        return int32(p.Size) * 1024
     case 'M':
-        return int64(p.Size) * 1024 * 1024
+        return int32(p.Size) * 1024 * 1024
     default:
-        return int64(p.Size) * 1024 * 1024 // Por defecto Megabytes
+        return int32(p.Size) * 1024 * 1024 // Por defecto Megabytes
     }
 }
 
 func (p *MkdiskParams) String() string {
-    return fmt.Sprintf("Size: %d, Fit: %s, Unit: %s, Path: %s", 
+    return fmt.Sprintf("Size: %d, Fit: %s, Unit: %c, Path: %s",
         p.Size, p.Fit, p.Unit, p.Path)
+}
+
+type FdiskParams struct {
+    Size int
+    Unit byte
+    Path string
+    Type byte
+    Fit  string
+    Name string
+}
+
+func (p *FdiskParams) GetSizeInBytes() int32 {
+    switch p.Unit {
+    case 'B':
+        return int32(p.Size)
+    case 'K':
+        return int32(p.Size) * 1024
+    case 'M':
+        return int32(p.Size) * 1024 * 1024
+    default:
+        return int32(p.Size) * 1024 // Por defecto Kilobytes
+    }
+}
+
+func (p *FdiskParams) String() string {
+    return fmt.Sprintf("Size: %d, Unit: %c, Path: %s, Type: %c, Fit: %s, Name: %s",
+        p.Size, p.Unit, p.Path, p.Type, p.Fit, p.Name)
+}
+
+type MountParams struct {
+    Path   string
+    Name   string
+    ID     string
+    Carnet string // Carnet del estudiante, se usarán los últimos 2 dígitos
+}
+
+func (p *MountParams) String() string {
+    return fmt.Sprintf("Path: %s, Name: %s, ID: %s, Carnet: %s",
+        p.Path, p.Name, p.ID, p.Carnet)
 }
