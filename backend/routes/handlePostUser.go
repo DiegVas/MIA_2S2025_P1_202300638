@@ -194,8 +194,8 @@ func handleMount(w http.ResponseWriter, command string) {
 	}
 
 	// Si el comando es válido y la partición se montó correctamente
-	confirmationMessage := fmt.Sprintf("Partición activada y montada exitosamente - Name: %s, Path: %s, ID: %s (Carnet: 202300638)",
-		params.Name, params.Path, id)
+	confirmationMessage := fmt.Sprintf("Partición activada y montada exitosamente en memoria \n Name: %s, ID: %s, \n Path: %s,\nPuede acceder a esta partición usando su ID o ver todas las particiones montadas con el comando MOUNTED",
+		params.Name, id, params.Path)
 
 	// Responder con JSON de éxito
 	response := structs.Response{
@@ -235,25 +235,31 @@ func HandlePostUser(w http.ResponseWriter, r *http.Request) {
 	commandLower := strings.ToLower(command.Command)
 
 	if strings.HasPrefix(commandLower, "mkdisk") {
-		// Procesar comando MKDISK
 		handleMkdisk(w, command.Command)
 	} else if strings.HasPrefix(commandLower, "rmdisk") {
-		// Procesar comando RMDISK
 		handleRmdisk(w, command.Command)
 	} else if strings.HasPrefix(commandLower, "fdisk") {
-		// Procesar comando FDISK
 		handleFdisk(w, command.Command)
+	} else if commandLower == "mounted" {
+		handleMounted(w, command.Command)
 	} else if strings.HasPrefix(commandLower, "mount") {
-		// Procesar comando MOUNT
 		handleMount(w, command.Command)
+	} else if strings.HasPrefix(commandLower, "mkfs") {
+		handleMkfs(w, command.Command)
+	} else if strings.HasPrefix(commandLower, "login") {
+		handleLogin(w, command.Command)
+	} else if commandLower == "logout" {
+		handleLogout(w, command.Command)
+	} else if strings.HasPrefix(commandLower, "mkgrp") {
+		handleMkgrp(w, command.Command)
+	} else if strings.HasPrefix(commandLower, "rmgrp") {
+		handleRmgrp(w, command.Command)
 	} else {
-		// Comando no reconocido
 		response := structs.Response{
-			Message: "Comando no reconocido. Comandos soportados: MKDISK, RMDISK, FDISK, MOUNT",
+			Message: "Comando no reconocido. Comandos soportados: MKDISK, RMDISK, FDISK, MOUNT, MOUNTED, MKFS, LOGIN, LOGOUT, MKGRP, RMGRP",
 			Data:    nil,
 			Type:    "system-error",
 		}
-
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(response)

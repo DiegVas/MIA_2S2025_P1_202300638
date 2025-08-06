@@ -10,7 +10,6 @@ import (
 
 func main() {
     http.HandleFunc("/command", utils.CORSMiddleware(routes.HandlePostUser))     // POST
-    http.HandleFunc("/mounted", utils.CORSMiddleware(routes.HandleGetMountedPartitions))     // GET
 
     // Iniciar servidor
     fmt.Println("Servidor iniciado en http://localhost:8080")

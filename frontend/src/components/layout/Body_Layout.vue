@@ -113,7 +113,7 @@ const getMessageClass = (type) => {
                 {{ message.timestamp.toLocaleTimeString() }}
               </div>
             </div>
-            <div class="message-content text-gray-200 leading-relaxed">
+            <div class="message-content text-gray-200 leading-relaxed whitespace-pre-line">
               {{ message.text }}
             </div>
           </div>
