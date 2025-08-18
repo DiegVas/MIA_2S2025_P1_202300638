@@ -13,7 +13,6 @@ type RmdiskParams struct {
 }
 
 func ParseRmdisk(command string) (*RmdiskParams, error) {
-	// Inicializar parámetros
 	params := &RmdiskParams{
 		Path: "",
 	}
@@ -23,10 +22,8 @@ func ParseRmdisk(command string) (*RmdiskParams, error) {
 		return nil, errors.New("comando inválido: debe comenzar con 'rmdisk'")
 	}
 
-	// Obtener solo los parámetros
-	paramStr := strings.TrimSpace(command[6:]) // Remover "rmdisk"
+	paramStr := strings.TrimSpace(command[6:])
 
-	// Expresión regular mejorada para capturar parámetros con valores que pueden contener espacios
 	paramRegex := regexp.MustCompile(`-(\w+)=(?:"([^"]*)"|'([^']*)'|([^\s]+))`)
 	matches := paramRegex.FindAllStringSubmatch(paramStr, -1)
 
@@ -43,14 +40,13 @@ func ParseRmdisk(command string) (*RmdiskParams, error) {
 
 		paramName := strings.ToLower(match[1])
 
-		// Determinar el valor del parámetro dependiendo de qué grupo de captura contiene el valor
 		var paramValue string
 		if match[2] != "" {
-			paramValue = match[2] // Valor con comillas dobles
+			paramValue = match[2]
 		} else if match[3] != "" {
-			paramValue = match[3] // Valor con comillas simples
+			paramValue = match[3]
 		} else {
-			paramValue = match[4] // Valor sin comillas
+			paramValue = match[4]
 		}
 
 		switch paramName {
@@ -74,11 +70,9 @@ func ParseRmdisk(command string) (*RmdiskParams, error) {
 }
 
 func RemoveDisk(params *RmdiskParams) error {
-	// Limpiar comillas de la ruta
 	path := params.Path
 	path = strings.Trim(path, "\"'")
 
-	// Verificar si el archivo existe
 	_, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -87,7 +81,6 @@ func RemoveDisk(params *RmdiskParams) error {
 		return fmt.Errorf("error al verificar si el disco existe: %v", err)
 	}
 
-	// Eliminar el archivo
 	err = os.Remove(path)
 	if err != nil {
 		return fmt.Errorf("error al eliminar el disco: %v", err)

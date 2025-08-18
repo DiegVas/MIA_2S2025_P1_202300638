@@ -40,11 +40,12 @@ export async function sendCommand(
       };
     }
   } catch (error) {
+    const error_parse = error instanceof Error ? error.message : "Unknown error";
     // Manejar errores de red o parsing
     console.error("Network or parsing error:", error);
     return {
       type: "system-error",
-      text: "Error de conexión o formato de respuesta",
+      text: error_parse,
       timestamp: new Date(),
     };
   }

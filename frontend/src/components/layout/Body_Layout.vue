@@ -53,6 +53,10 @@ const getMessageIcon = (type) => {
       return "🤖";
     case "system-error":
       return "❌";
+    case "root":
+      return "👑";
+    case "default":
+      return "🟢";
     default:
       return "💬";
   }
@@ -106,6 +110,10 @@ const getMessageClass = (type) => {
                     ? "Sistema"
                     : message.type === "system-error"
                     ? "Error del sistema"
+                    : message.type === "root"
+                    ? "Administrador Root"
+                    : message.type === "default"
+                    ? "Usuario Logueado"
                     : "Desconocido"
                 }}</span>
               </div>
@@ -161,6 +169,16 @@ const getMessageClass = (type) => {
 
 .message-system-error {
   border-left-color: var(--color-error);
+}
+
+.message-root {
+  border-left-color: #ffd700; /* Dorado para root */
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.message-default {
+  border-left-color: #00ff7f; /* Verde primavera para usuarios default */
+  background: rgba(0, 255, 127, 0.1);
 }
 
 .message-content {

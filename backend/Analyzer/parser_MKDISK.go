@@ -11,100 +11,98 @@ import (
 
 type MkdiskParams = structs.MkdiskParams
 
+func ParseMkdisk(command string) (*MkdiskParams, error) {
 
-func ParseMkdisk(command string) (*MkdiskParams, error)  {
-    
-    // ! Parametros iniciales
-    
-    params := &MkdiskParams{
-        Size: 0,
-        Fit:  "FF",
-        Unit: 'M',
-        Path: "",
-    }
+	// ! Parametros iniciales
 
-    command = strings.TrimSpace(command)
-    if !strings.HasPrefix(strings.ToLower(command), "mkdisk") {
-        return nil, errors.New("comando inválido: debe comenzar con 'mkdisk'")
-    }
-    
-    // ? Obtener solo los parámetros
-    paramStr := strings.TrimSpace(command[6:]) // Remover "mkdisk"
-    
+	params := &MkdiskParams{
+		Size: 0,
+		Fit:  "FF",
+		Unit: 'M',
+		Path: "",
+	}
 
-    // Expresión regular mejorada para capturar parámetros con valores que pueden contener espacios
-    // Captura: -parámetro="valor con espacios" o -parámetro='valor con espacios' o -parámetro=valor_sin_espacios
-    paramRegex := regexp.MustCompile(`-(\w+)=(?:"([^"]*)"|'([^']*)'|([^\s]+))`)
-    matches := paramRegex.FindAllStringSubmatch(paramStr, -1)
-    
-    if len(matches) == 0 {
-        return nil, errors.New("no se encontraron parámetros válidos")
-    }
+	command = strings.TrimSpace(command)
+	if !strings.HasPrefix(strings.ToLower(command), "mkdisk") {
+		return nil, errors.New("comando inválido: debe comenzar con 'mkdisk'")
+	}
 
-    sizeFound := false
-    pathFound := false
+	// ? Obtener solo los parámetros
+	paramStr := strings.TrimSpace(command[6:]) // Remover "mkdisk"
 
-    for _, match := range matches {
-        if len(match) < 3 {
-            continue
-        }
-        
-        paramName := strings.ToLower(match[1])
-        
-        // Determinar el valor del parámetro dependiendo de qué grupo de captura contiene el valor
-        var paramValue string
-        if match[2] != "" {
-            paramValue = match[2] // Valor con comillas dobles
-        } else if match[3] != "" {
-            paramValue = match[3] // Valor con comillas simples
-        } else {
-            paramValue = match[4] // Valor sin comillas
-        }
+	// TODO: Captura: -parámetro="valor con espacios" o -parámetro='valor con espacios' o -parámetro=valor_sin_espacios
+	paramRegex := regexp.MustCompile(`-(\w+)=(?:"([^"]*)"|'([^']*)'|([^\s]+))`)
+	matches := paramRegex.FindAllStringSubmatch(paramStr, -1)
 
-        switch paramName {
-        case "size":
-            size, err := strconv.Atoi(paramValue)
-            if err != nil {
-                return nil, fmt.Errorf("error al convertir size: %v", err)
-            }
-            if size <= 0 {
-                return nil, errors.New("el parámetro size debe ser positivo y mayor que cero")
-            }
-            params.Size = size
-            sizeFound = true
+	if len(matches) == 0 {
+		return nil, errors.New("no se encontraron parámetros válidos")
+	}
 
-        case "fit":
-            fit := strings.ToUpper(paramValue)
-            if fit != "BF" && fit != "FF" && fit != "WF" {
-                return nil, errors.New("el parámetro fit debe ser BF, FF o WF")
-            }
-            params.Fit = fit
+	sizeFound := false
+	pathFound := false
 
-        case "unit":
-            unit := strings.ToUpper(paramValue)
-            if unit != "K" && unit != "M" {
-                return nil, errors.New("el parámetro unit debe ser K o M")
-            }
-            params.Unit = unit[0]
+	for _, match := range matches {
+		if len(match) < 3 {
+			continue
+		}
 
-        case "path":
-            if paramValue == "" {
-                return nil, errors.New("el parámetro path no puede estar vacío")
-            }
-            params.Path = paramValue
-            pathFound = true
+		paramName := strings.ToLower(match[1])
 
-        default:
-            return nil, fmt.Errorf("parámetro desconocido: %s", paramName)
-        }
-    }
+		var paramValue string
+		if match[2] != "" {
+			paramValue = match[2] // ? Valor con comillas dobles
+		} else if match[3] != "" {
+			paramValue = match[3] // ? Valor con comillas simples
+		} else {
+			paramValue = match[4] // ? Valor sin comillas
+		}
 
-    if !sizeFound {
-        return nil, errors.New("el parámetro -size es obligatorio")
-    }
-    if !pathFound {
-        return nil, errors.New("el parámetro -path es obligatorio")
-    }
+		// * Parametros
 
-    return params, nil
+		switch paramName {
+		case "size":
+			size, err := strconv.Atoi(paramValue)
+			if err != nil {
+				return nil, fmt.Errorf("error al convertir size: %v", err)
+			}
+			if size <= 0 {
+				return nil, errors.New("el parámetro size debe ser positivo y mayor que cero")
+			}
+			params.Size = size
+			sizeFound = true
+
+		case "fit":
+			fit := strings.ToUpper(paramValue)
+			if fit != "BF" && fit != "FF" && fit != "WF" {
+				return nil, errors.New("el parámetro fit debe ser BF, FF o WF")
+			}
+			params.Fit = fit
+
+		case "unit":
+			unit := strings.ToUpper(paramValue)
+			if unit != "K" && unit != "M" {
+				return nil, errors.New("el parámetro unit debe ser K o M")
+			}
+			params.Unit = unit[0]
+
+		case "path":
+			if paramValue == "" {
+				return nil, errors.New("el parámetro path no puede estar vacío")
+			}
+			params.Path = paramValue
+			pathFound = true
+
+		default:
+			return nil, fmt.Errorf("parámetro desconocido: %s", paramName)
+		}
+	}
+
+	if !sizeFound {
+		return nil, errors.New("el parámetro -size es obligatorio")
+	}
+	if !pathFound {
+		return nil, errors.New("el parámetro -path es obligatorio")
+	}
+
+	return params, nil
 }
