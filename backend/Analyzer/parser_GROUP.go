@@ -8,13 +8,9 @@ import (
 	"strings"
 )
 
-type GroupParams struct {
-	Name string
-}
+func ParseMkgrp(command string) (*structs.GroupParams, error) {
 
-func ParseMkgrp(command string) (*GroupParams, error) {
-
-	params := &GroupParams{}
+	params := &structs.GroupParams{}
 
 	session := structs.GetSession()
 	if !session.Active {
@@ -83,9 +79,9 @@ func ParseMkgrp(command string) (*GroupParams, error) {
 
 	return params, nil
 }
-func ParseRmgrp(command string) (*GroupParams, error) {
+func ParseRmgrp(command string) (*structs.GroupParams, error) {
 
-	params := &GroupParams{}
+	params := &structs.GroupParams{}
 
 	session := structs.GetSession()
 	if !session.Active {

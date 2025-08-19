@@ -1,4 +1,4 @@
-package structs
+package mounted
 
 import (
 	"fmt"
@@ -18,22 +18,6 @@ type MountManager struct {
 	DiskLetters       map[string]byte
 	DiskCounters      map[string]int
 	Mutex             sync.Mutex
-}
-
-var (
-	mountManager     *MountManager
-	mountManagerOnce sync.Once
-)
-
-func GetMountManager() *MountManager {
-	mountManagerOnce.Do(func() {
-		mountManager = &MountManager{
-			MountedPartitions: make([]MountedPartition, 0),
-			DiskLetters:       make(map[string]byte),
-			DiskCounters:      make(map[string]int),
-		}
-	})
-	return mountManager
 }
 
 func (mm *MountManager) AddMountedPartition(path, name string, carnet string) (string, int, error) {

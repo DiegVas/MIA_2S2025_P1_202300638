@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"main/Analyzer"
+	"main/provider/users"
 	"main/structs"
 	"main/utils"
 	"net/http"
@@ -21,7 +22,7 @@ func handleLogin(w http.ResponseWriter, command string) {
 		return
 	}
 
-	err = Analyzer.LoginUser(params)
+	err = users.LoginUser(params)
 	if err != nil {
 		response := structs.Response{
 			Message: err.Error(),
@@ -54,7 +55,7 @@ func handleLogout(w http.ResponseWriter, command string) {
 		utils.SendJSONResponse(w, response, http.StatusBadRequest)
 		return
 	}
-	err = Analyzer.LogoutUser()
+	err = users.LogoutUser()
 	if err != nil {
 		response := structs.Response{
 			Message: err.Error(),

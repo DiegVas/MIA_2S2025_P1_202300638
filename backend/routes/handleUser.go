@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"main/Analyzer"
+	"main/provider/users"
 	"main/structs"
 	"main/utils"
 	"net/http"
@@ -21,7 +22,7 @@ func handleMkusr(w http.ResponseWriter, command string) {
 		return
 	}
 
-	err = Analyzer.CreateUser(params)
+	err = users.CreateUser(params)
 	if err != nil {
 		response := structs.Response{
 			Message: err.Error(),
@@ -56,7 +57,7 @@ func handleRmusr(w http.ResponseWriter, command string) {
 		utils.SendJSONResponse(w, response, http.StatusBadRequest)
 		return
 	}
-	err = Analyzer.RemoveUser(params)
+	err = users.RemoveUser(params)
 	if err != nil {
 		response := structs.Response{
 			Message: err.Error(),
@@ -89,7 +90,7 @@ func handleChgrp(w http.ResponseWriter, command string) {
 		return
 	}
 
-	err = Analyzer.ChangeUserGroup(params)
+	err = users.ChangeUserGroup(params)
 	if err != nil {
 		response := utils.CreateResponse(
 			err.Error(),

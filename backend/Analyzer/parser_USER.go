@@ -3,27 +3,13 @@ package Analyzer
 import (
 	"errors"
 	"fmt"
+	"main/structs"
 	"regexp"
 	"strings"
 )
 
-type UserParams struct {
-	User string
-	Pass string
-	Grp  string
-}
-
-type RmUserParams struct {
-	User string
-}
-
-type ChgrpParams struct {
-	User string
-	Grp  string
-}
-
-func ParseMkusr(command string) (*UserParams, error) {
-	params := &UserParams{}
+func ParseMkusr(command string) (*structs.UserParams, error) {
+	params := &structs.UserParams{}
 	commandLower := strings.ToLower(command)
 	if !strings.HasPrefix(commandLower, "mkusr") {
 		return nil, errors.New("el comando debe comenzar con 'mkusr'")
@@ -74,8 +60,8 @@ func ParseMkusr(command string) (*UserParams, error) {
 	return params, nil
 }
 
-func ParseRmusr(command string) (*RmUserParams, error) {
-	params := &RmUserParams{}
+func ParseRmusr(command string) (*structs.RmUserParams, error) {
+	params := &structs.RmUserParams{}
 	commandLower := strings.ToLower(command)
 	if !strings.HasPrefix(commandLower, "rmusr") {
 		return nil, errors.New("el comando debe comenzar con 'rmusr'")
@@ -117,8 +103,8 @@ func ParseRmusr(command string) (*RmUserParams, error) {
 	return params, nil
 }
 
-func ParseChgrp(command string) (*ChgrpParams, error) {
-	params := &ChgrpParams{}
+func ParseChgrp(command string) (*structs.ChgrpParams, error) {
+	params := &structs.ChgrpParams{}
 	commandLower := strings.ToLower(command)
 	if !strings.HasPrefix(commandLower, "chgrp") {
 		return nil, errors.New("el comando debe comenzar con 'chgrp'")

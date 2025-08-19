@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"main/Analyzer"
+	"main/provider/mounted"
 	"main/structs"
 	"main/utils"
 	"net/http"
@@ -24,7 +25,7 @@ func handleMkfs(w http.ResponseWriter, command string) {
 		return
 	}
 
-	err = Analyzer.FormatPartition(params)
+	err = mounted.FormatPartition(params)
 	if err != nil {
 		response := structs.Response{
 			Message: fmt.Sprintf("Error al formatear la partición: %s", err.Error()),

@@ -1,31 +1,29 @@
-package Analyzer
+package diskmanager
 
 import (
 	"fmt"
+	"main/provider/mounted"
 	"main/structs"
-	"main/utils"
 )
 
-// FormatPartition formatea una partición con ext2
 func FormatPartition(params *structs.MkfsParams) error {
-	// Verificar que la partición esté montada
-	mountManager := structs.GetMountManager()
+	mountManager := mounted.GetMountManager()
 	_, found := mountManager.GetMountedPartition(params.ID)
-	
+
 	if !found {
 		return fmt.Errorf("no se encontró ninguna partición montada con el ID '%s'", params.ID)
 	}
-	
+
 	// Realizar el formateo según el tipo especificado (solo 'full' por ahora)
 	if params.Type == "full" {
 		// Formatear la partición con ext2
-		err := utils.FormatPartition(params)
+		err := mounted.FormatPartition(params)
 		if err != nil {
 			return fmt.Errorf("error al formatear la partición: %v", err)
 		}
 	} else {
 		return fmt.Errorf("tipo de formateo no soportado: '%s'", params.Type)
 	}
-	
+
 	return nil
 }

@@ -1,24 +1,24 @@
-package Analyzer
+package users
 
 import (
 	"bufio"
 	"errors"
 	"fmt"
+	"main/provider/mounted"
 	"main/structs"
 	"main/utils"
 	"os"
 	"strings"
 )
 
-// LoginUser valida usuario y contraseña en users.txt y gestiona la sesión
-func LoginUser(params *LoginParams) error {
+func LoginUser(params *structs.LoginParams) error {
 	session := structs.GetSession()
 
 	if session.Active {
 		return errors.New("ya hay una sesión activa, debe hacer logout primero")
 	}
 
-	mountManager := structs.GetMountManager()
+	mountManager := mounted.GetMountManager()
 	partition, found := mountManager.GetMountedPartition(params.ID)
 
 	if !found {
@@ -51,7 +51,7 @@ func LoginUser(params *LoginParams) error {
 	blockCount := (targetPartition.Part_size - inodeCount*structs.INODE_SIZE) / structs.BLOCK_SIZE
 	inodePos := start + structs.SUPERBLOCK_SIZE + inodeCount + blockCount
 	blockPos := inodePos + (inodeCount * structs.INODE_SIZE)
-	usersBlockPos := blockPos + structs.BLOCK_SIZE // Bloque 1 para users.txt
+	usersBlockPos := blockPos + structs.BLOCK_SIZE
 	file, err := os.Open(partition.Path)
 
 	if err != nil {
@@ -91,13 +91,4 @@ func LoginUser(params *LoginParams) error {
 		}
 	}
 	return errors.New("usuario no existe")
-}
-
-func LogoutUser() error {
-	session := structs.GetSession()
-	if !session.Active {
-		return errors.New("no hay sesión activa para cerrar")
-	}
-	session.Logout()
-	return nil
 }

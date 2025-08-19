@@ -2,6 +2,7 @@ package routes
 
 import (
 	"main/Analyzer"
+	diskmanager "main/diskManager"
 	"main/utils"
 	"net/http"
 )
@@ -19,7 +20,7 @@ func handlePdisk(w http.ResponseWriter, command string) {
 		return
 	}
 
-	diskInfo, err := Analyzer.ShowDiskPartitions(params)
+	diskInfo, err := diskmanager.ShowDiskPartitions(params)
 	if err != nil {
 		response := utils.CreateResponse(
 			err.Error(),
@@ -31,7 +32,7 @@ func handlePdisk(w http.ResponseWriter, command string) {
 		return
 	}
 
-	formattedOutput := Analyzer.FormatPartitionsOutput(diskInfo)
+	formattedOutput := diskmanager.FormatPartitionsOutput(diskInfo)
 
 	response := utils.CreateResponse(
 		formattedOutput,

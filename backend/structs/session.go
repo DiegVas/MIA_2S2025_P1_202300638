@@ -2,11 +2,17 @@ package structs
 
 import "sync"
 
+type LoginParams struct {
+	User string
+	Pass string
+	ID   string
+}
+
 type Session struct {
-	Active      bool
-	User        string
-	ID          string
-	Group       string
+	Active bool
+	User   string
+	ID     string
+	Group  string
 }
 
 var (

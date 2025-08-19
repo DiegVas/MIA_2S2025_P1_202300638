@@ -3,19 +3,13 @@ package Analyzer
 import (
 	"errors"
 	"fmt"
+	"main/structs"
 	"regexp"
 	"strings"
 )
 
-type LoginParams struct {
-	User string
-	Pass string
-	ID   string
-}
-
-// ParseLogin analiza el comando LOGIN y extrae los parámetros
-func ParseLogin(command string) (*LoginParams, error) {
-	params := &LoginParams{}
+func ParseLogin(command string) (*structs.LoginParams, error) {
+	params := &structs.LoginParams{}
 	commandLower := strings.ToLower(command)
 	if !strings.HasPrefix(commandLower, "login") {
 		return nil, errors.New("el comando debe comenzar con 'login'")

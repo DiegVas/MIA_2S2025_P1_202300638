@@ -3,17 +3,14 @@ package Analyzer
 import (
 	"errors"
 	"fmt"
+	"main/structs"
 	"os"
 	"regexp"
 	"strings"
 )
 
-type RmdiskParams struct {
-	Path string
-}
-
-func ParseRmdisk(command string) (*RmdiskParams, error) {
-	params := &RmdiskParams{
+func ParseRmdisk(command string) (*structs.RmdiskParams, error) {
+	params := &structs.RmdiskParams{
 		Path: "",
 	}
 
@@ -69,7 +66,7 @@ func ParseRmdisk(command string) (*RmdiskParams, error) {
 	return params, nil
 }
 
-func RemoveDisk(params *RmdiskParams) error {
+func RemoveDisk(params *structs.RmdiskParams) error {
 	path := params.Path
 	path = strings.Trim(path, "\"'")
 

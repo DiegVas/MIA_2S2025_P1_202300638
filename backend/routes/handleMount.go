@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"main/Analyzer"
+	"main/provider/mounted"
 	"main/structs"
 	"main/utils"
 	"net/http"
@@ -23,7 +24,7 @@ func handleMount(w http.ResponseWriter, command string) {
 		return
 	}
 
-	id, err := Analyzer.MountPartition(params)
+	id, err := mounted.MountPartition(params)
 	if err != nil {
 
 		response := structs.Response{

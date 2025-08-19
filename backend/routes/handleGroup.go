@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"main/Analyzer"
+	"main/provider/groups"
 	"main/structs"
 	"main/utils"
 	"net/http"
@@ -25,7 +26,7 @@ func handleMkgrp(w http.ResponseWriter, command string) {
 	}
 
 	// ! Crear el grupo
-	err = Analyzer.CreateGroup(params)
+	err = groups.CreateGroup(params)
 	if err != nil {
 		fmt.Printf("handleMkgrp - error: %s\n", err.Error())
 
@@ -62,7 +63,7 @@ func handleRmgrp(w http.ResponseWriter, command string) {
 		return
 	}
 
-	err = Analyzer.RemoveGroup(params)
+	err = groups.RemoveGroup(params)
 	if err != nil {
 		fmt.Printf("handleRmgrp - error: %s\n", err.Error())
 
