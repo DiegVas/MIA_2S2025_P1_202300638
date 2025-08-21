@@ -10,6 +10,7 @@ import (
 )
 
 func handleMount(w http.ResponseWriter, command string) {
+	fmt.Println("handleMount - command:", command)
 	params, err := Analyzer.ParseMount(command)
 	if err != nil {
 		fmt.Printf("handleMount - error: %s\n", err.Error())
@@ -37,7 +38,7 @@ func handleMount(w http.ResponseWriter, command string) {
 		return
 	}
 
-	confirmationMessage := fmt.Sprintf("Partición activada y montada exitosamente en memoria \n Name: %s, ID: %s, \n Path: %s,\nPuede acceder a esta partición usando su ID o ver todas las particiones montadas con el comando MOUNTED",
+	confirmationMessage := fmt.Sprintf("Partición activada y montada exitosamente en memoria \n Name: %s, ID: %s, \n Path: %s,\n",
 		params.Name, id, params.Path)
 
 	response := structs.Response{

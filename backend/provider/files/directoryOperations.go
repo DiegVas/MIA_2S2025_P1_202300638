@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"main/provider/mounted"
 	"main/structs"
+	"main/utils"
 	"os"
 	"strings"
 	"time"
@@ -35,8 +36,15 @@ func FindOrCreateParentDirectory(file *os.File, dirPath string, session *structs
 				return -1, fmt.Errorf("el directorio '%s' no existe", component)
 			}
 
+			//  ? Obtener la partición montada
+			mountManager := mounted.GetMountManager()
+			partition, found := mountManager.GetMountedPartition(session.ID)
+			if !found {
+				return -1, fmt.Errorf("no se encontró la partición con ID '%s'", session.ID)
+			}
+
 			//  ? Crear el directorio
-			currentUser, err := GetCurrentUserInfo(session, mounted.MountedPartition{})
+			currentUser, err := GetCurrentUserInfo(session, partition)
 			if err != nil {
 				return -1, fmt.Errorf("error al obtener información del usuario: %v", err)
 			}
@@ -66,23 +74,27 @@ func FindFileInDirectoryByInode(file *os.File, name string, dirInodeNum, inodePo
 	buffer := bytes.NewReader(inodeBytes)
 	binary.Read(buffer, binary.LittleEndian, &inode)
 
-	// ? Leer el bloque del directorio
-	blockNum := inode.I_block[0]
-	blockBytes := make([]byte, structs.BLOCK_SIZE)
-	_, err = file.ReadAt(blockBytes, int64(blockPos+(blockNum*structs.BLOCK_SIZE)))
-	if err != nil {
-		return -1, false
-	}
+	// ? Buscar en todos los bloques directos del directorio
+	for i := 0; i < 12; i++ { // Los primeros 12 son bloques directos
+		if inode.I_block[i] != 0 {
+			blockNum := inode.I_block[i]
+			blockBytes := make([]byte, structs.BLOCK_SIZE)
+			_, err = file.ReadAt(blockBytes, int64(blockPos+(blockNum*structs.BLOCK_SIZE)))
+			if err != nil {
+				continue
+			}
 
-	var folderBlock structs.FolderBlock
-	buffer = bytes.NewReader(blockBytes)
-	binary.Read(buffer, binary.LittleEndian, &folderBlock)
+			var folderBlock structs.FolderBlock
+			buffer = bytes.NewReader(blockBytes)
+			binary.Read(buffer, binary.LittleEndian, &folderBlock)
 
-	// ? Buscar el archivo en las entradas del directorio
-	for _, content := range folderBlock.B_content {
-		entryName := strings.TrimRight(string(content.B_name[:]), "\x00")
-		if entryName == name {
-			return content.B_inodo, true
+			// ? Buscar el archivo en las entradas de este bloque
+			for _, content := range folderBlock.B_content {
+				entryName := strings.TrimRight(string(content.B_name[:]), "\x00")
+				if entryName == name {
+					return content.B_inodo, true
+				}
+			}
 		}
 	}
 
@@ -156,7 +168,7 @@ func CreateNewDirectory(file *os.File, dirName string, user *structs.User, paren
 	}
 
 	// Agregar la entrada al directorio padre
-	err = AddFileToDirectory(file, dirName, freeInodeNum, parentInodeNum, inodePos, blockPos)
+	err = AddFileToDirectory(file, dirName, freeInodeNum, parentInodeNum, inodePos, blockPos, bmBlockPos, blockCount)
 	if err != nil {
 		return -1, err
 	}
@@ -164,7 +176,7 @@ func CreateNewDirectory(file *os.File, dirName string, user *structs.User, paren
 	return freeInodeNum, nil
 }
 
-func AddFileToDirectory(file *os.File, fileName string, fileInodeNum, dirInodeNum, inodePos, blockPos int32) error {
+func AddFileToDirectory(file *os.File, fileName string, fileInodeNum, dirInodeNum, inodePos, blockPos, bmBlockPos, blockCount int32) error {
 	// Leer el inodo del directorio
 	inodeBytes := make([]byte, structs.INODE_SIZE)
 	_, err := file.ReadAt(inodeBytes, int64(inodePos+(dirInodeNum*structs.INODE_SIZE)))
@@ -176,33 +188,185 @@ func AddFileToDirectory(file *os.File, fileName string, fileInodeNum, dirInodeNu
 	buffer := bytes.NewReader(inodeBytes)
 	binary.Read(buffer, binary.LittleEndian, &dirInode)
 
-	// Leer el bloque del directorio
-	blockNum := dirInode.I_block[0]
-	blockBytes := make([]byte, structs.BLOCK_SIZE)
-	_, err = file.ReadAt(blockBytes, int64(blockPos+(blockNum*structs.BLOCK_SIZE)))
-	if err != nil {
-		return err
-	}
+	// Buscar en todos los bloques directos existentes
+	for i := 0; i < 12; i++ { // Los primeros 12 son bloques directos
+		if dirInode.I_block[i] != 0 {
+			// Verificar si hay espacio en este bloque
+			blockNum := dirInode.I_block[i]
+			blockBytes := make([]byte, structs.BLOCK_SIZE)
+			_, err = file.ReadAt(blockBytes, int64(blockPos+(blockNum*structs.BLOCK_SIZE)))
+			if err != nil {
+				continue
+			}
 
-	var folderBlock structs.FolderBlock
-	buffer = bytes.NewReader(blockBytes)
-	binary.Read(buffer, binary.LittleEndian, &folderBlock)
+			var folderBlock structs.FolderBlock
+			buffer = bytes.NewReader(blockBytes)
+			binary.Read(buffer, binary.LittleEndian, &folderBlock)
 
-	// Buscar una entrada libre
-	for i := range folderBlock.B_content {
-		entryName := strings.TrimRight(string(folderBlock.B_content[i].B_name[:]), "\x00")
-		if entryName == "" {
-			// Entrada libre encontrada
-			copy(folderBlock.B_content[i].B_name[:], fileName)
-			folderBlock.B_content[i].B_inodo = fileInodeNum
+			// Buscar una entrada libre en este bloque
+			for j := range folderBlock.B_content {
+				entryName := strings.TrimRight(string(folderBlock.B_content[j].B_name[:]), "\x00")
+				if entryName == "" {
+					// Entrada libre encontrada
+					copy(folderBlock.B_content[j].B_name[:], fileName)
+					folderBlock.B_content[j].B_inodo = fileInodeNum
 
-			// Escribir el bloque actualizado
+					// Escribir el bloque actualizado
+					var folderBuffer bytes.Buffer
+					binary.Write(&folderBuffer, binary.LittleEndian, folderBlock)
+					_, err = file.WriteAt(folderBuffer.Bytes(), int64(blockPos+(blockNum*structs.BLOCK_SIZE)))
+					return err
+				}
+			}
+		} else {
+			// Este slot está libre, crear un nuevo bloque de carpeta
+			newBlocks, err := FindFreeBlocks(file, bmBlockPos, blockCount, 1)
+			if err != nil {
+				continue
+			}
+
+			newBlockNum := newBlocks[0]
+			dirInode.I_block[i] = newBlockNum
+
+			// Crear nuevo FolderBlock
+			var newFolderBlock structs.FolderBlock
+			copy(newFolderBlock.B_content[0].B_name[:], fileName)
+			newFolderBlock.B_content[0].B_inodo = fileInodeNum
+
+			// Escribir el nuevo bloque
 			var folderBuffer bytes.Buffer
-			binary.Write(&folderBuffer, binary.LittleEndian, folderBlock)
-			_, err = file.WriteAt(folderBuffer.Bytes(), int64(blockPos+(blockNum*structs.BLOCK_SIZE)))
+			binary.Write(&folderBuffer, binary.LittleEndian, newFolderBlock)
+			_, err = file.WriteAt(folderBuffer.Bytes(), int64(blockPos+(newBlockNum*structs.BLOCK_SIZE)))
+			if err != nil {
+				return err
+			}
+
+			// Marcar el bloque como usado
+			err = MarkBlockAsUsed(file, bmBlockPos, newBlockNum)
+			if err != nil {
+				return err
+			}
+
+			// Actualizar el inodo del directorio
+			var inodeBuffer bytes.Buffer
+			binary.Write(&inodeBuffer, binary.LittleEndian, dirInode)
+			_, err = file.WriteAt(inodeBuffer.Bytes(), int64(inodePos+(dirInodeNum*structs.INODE_SIZE)))
 			return err
 		}
 	}
 
-	return errors.New("no hay espacio disponible en el directorio padre")
+	return errors.New("no hay espacio disponible en el directorio padre - todos los bloques directos están llenos")
+}
+
+// CreateDirectory crea un directorio usando el comando mkdir
+func CreateDirectory(params *structs.MkdirParams) error {
+	session := structs.GetSession()
+	if !session.Active {
+		return errors.New("debe iniciar sesión para usar el comando MKDIR")
+	}
+
+	mountManager := mounted.GetMountManager()
+	partition, found := mountManager.GetMountedPartition(session.ID)
+	if !found {
+		return errors.New("no hay ninguna partición montada para esta sesión")
+	}
+
+	mbr, err := utils.ReadMBR(partition.Path)
+	if err != nil {
+		return fmt.Errorf("error al leer el MBR del disco: %v", err)
+	}
+
+	// Buscar la partición montada
+	var targetPartition structs.PARTITION
+	var partitionFound bool
+	for _, p := range mbr.Partitions {
+		partName := strings.TrimRight(string(p.Part_name[:]), "\x00")
+		if partName == partition.Name {
+			targetPartition = p
+			partitionFound = true
+			break
+		}
+	}
+
+	if !partitionFound {
+		return fmt.Errorf("la partición '%s' no se encontró en el disco", partition.Name)
+	}
+
+	// Calcular las posiciones de las estructuras del sistema de archivos
+	startPosition := targetPartition.Part_start
+	inodeCount := int32(float64(targetPartition.Part_size) * 0.05 / float64(structs.INODE_SIZE))
+	blockCount := (targetPartition.Part_size - inodeCount*structs.INODE_SIZE) / structs.BLOCK_SIZE
+
+	bmInodePos := startPosition + structs.SUPERBLOCK_SIZE
+	bmBlockPos := bmInodePos + inodeCount
+	inodePos := bmBlockPos + blockCount
+	blockPos := inodePos + (inodeCount * structs.INODE_SIZE)
+
+	// Abrir el archivo del disco para escritura
+	diskFile, err := os.OpenFile(partition.Path, os.O_RDWR, 0644)
+	if err != nil {
+		return fmt.Errorf("error al abrir el disco: %v", err)
+	}
+	defer diskFile.Close()
+
+	// Si el parámetro -p está presente, crear directorios padre
+	if params.P {
+		_, err = FindOrCreateParentDirectory(diskFile, params.Path, session,
+			inodePos, blockPos, bmInodePos, bmBlockPos, inodeCount, blockCount, true)
+		if err != nil {
+			return fmt.Errorf("error al crear directorios padre: %v", err)
+		}
+		return nil
+	}
+
+	// Sin -p, verificar que el directorio padre existe y crear solo el directorio especificado
+	parentPath := getParentPath(params.Path)
+	dirName := getLastComponent(params.Path)
+
+	// Buscar el inodo del directorio padre
+	parentInodeNum, err := findFileInodeByPath(diskFile, parentPath, inodePos, blockPos)
+	if err != nil {
+		return fmt.Errorf("el directorio padre no existe: %v", err)
+	}
+
+	// Crear solo el directorio especificado
+	currentUser, err := GetCurrentUserInfo(session, partition)
+	if err != nil {
+		return fmt.Errorf("error al obtener información del usuario: %v", err)
+	}
+
+	_, err = CreateNewDirectory(diskFile, dirName, currentUser, parentInodeNum,
+		inodePos, blockPos, bmInodePos, bmBlockPos, inodeCount, blockCount)
+	if err != nil {
+		return fmt.Errorf("error al crear el directorio: %v", err)
+	}
+
+	return nil
+}
+
+// getParentPath obtiene la ruta del directorio padre
+func getParentPath(path string) string {
+	if path == "/" {
+		return "/"
+	}
+
+	path = strings.TrimSuffix(path, "/")
+	lastSlash := strings.LastIndex(path, "/")
+	if lastSlash == 0 {
+		return "/"
+	}
+	if lastSlash == -1 {
+		return "/"
+	}
+	return path[:lastSlash]
+}
+
+// getLastComponent extrae el último componente de una ruta
+func getLastComponent(path string) string {
+	path = strings.TrimSuffix(path, "/")
+	parts := strings.Split(path, "/")
+	if len(parts) == 0 {
+		return ""
+	}
+	return parts[len(parts)-1]
 }

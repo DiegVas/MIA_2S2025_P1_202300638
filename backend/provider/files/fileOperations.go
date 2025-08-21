@@ -40,7 +40,7 @@ func CreateNewFile(file *os.File, fileName, content string, size int32, user *st
 		I_atime: timeBytes,
 		I_ctime: timeBytes,
 		I_mtime: timeBytes,
-		I_type:  0,
+		I_type:  0, // 0 = archivo
 		I_perm:  664,
 	}
 
@@ -80,7 +80,7 @@ func CreateNewFile(file *os.File, fileName, content string, size int32, user *st
 	}
 
 	// ? Agregar la entrada al directorio padre
-	err = AddFileToDirectory(file, fileName, freeInodeNum, parentInodeNum, inodePos, blockPos)
+	err = AddFileToDirectory(file, fileName, freeInodeNum, parentInodeNum, inodePos, blockPos, bmBlockPos, blockCount)
 	if err != nil {
 		return err
 	}

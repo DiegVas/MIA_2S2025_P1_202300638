@@ -44,7 +44,7 @@ func findFileInodeByPath(file *os.File, path string, inodePos, blockPos int32) (
 		} else {
 			// Debe ser un directorio
 			if inode.I_type != 1 {
-				return -1, fmt.Errorf("'%s' no es un directorio", component)
+				return -1, fmt.Errorf("'%s' no es un directorio (I_type=%d)", component, inode.I_type)
 			}
 			// Buscar el siguiente directorio
 			nextInodeNum, err := findFileInDirectory(file, component, inode, blockPos)

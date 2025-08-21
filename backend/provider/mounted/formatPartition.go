@@ -133,7 +133,7 @@ func FormatPartition(params *structs.MkfsParams) error {
 		I_ctime: getCurrentTimeBytes(),
 		I_mtime: getCurrentTimeBytes(),
 		I_block: [15]int32{0},
-		I_type:  1,
+		I_type:  1, // 1 = directorio
 		I_perm:  664,
 	}
 
@@ -152,7 +152,7 @@ func FormatPartition(params *structs.MkfsParams) error {
 		I_ctime: getCurrentTimeBytes(),
 		I_mtime: getCurrentTimeBytes(),
 		I_block: [15]int32{1},
-		I_type:  0,
+		I_type:  0, // 0 = archivo
 		I_perm:  664,
 	}
 

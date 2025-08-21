@@ -6,7 +6,8 @@ import (
 )
 
 type MountedPartition struct {
-	Path        string
+	Path        string // Ruta del disco
+	DiskPath    string // Alias para Path (compatibilidad)
 	Name        string
 	ID          string
 	Correlative int
@@ -61,6 +62,7 @@ func (mm *MountManager) AddMountedPartition(path, name string, carnet string) (s
 
 	mountedPartition := MountedPartition{
 		Path:        path,
+		DiskPath:    path, // Mantener compatibilidad
 		Name:        name,
 		ID:          id,
 		Correlative: counter,

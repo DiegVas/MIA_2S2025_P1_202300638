@@ -1,5 +1,6 @@
 <script setup>
 import { ref, nextTick, watch } from "vue";
+import { useFileLoader } from "../../composables/useFileLoader.js";
 
 // Props
 const props = defineProps({
@@ -22,12 +23,15 @@ const props = defineProps({
 });
 
 // Emits
-const emit = defineEmits(["send", "input", "focus", "blur"]);
+const emit = defineEmits(["send", "input", "focus", "blur", "fileLoaded"]);
 
 // Reactive data
 const message = ref("");
 const textareaRef = ref(null);
 const isFocused = ref(false);
+
+// Composables
+const { loadSmiaFile, isLoading: fileLoading, error: fileError } = useFileLoader();
 
 // Methods
 const handleInput = () => {
@@ -44,13 +48,10 @@ const handleSend = () => {
 };
 
 const handleKeydown = (event) => {
-  // Enviar con Ctrl+Enter o Cmd+Enter
   if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
     event.preventDefault();
     handleSend();
-  }
-  // Prevenir nueva línea con solo Enter si hay texto
-  else if (event.key === "Enter" && !event.shiftKey) {
+  } else if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
     handleSend();
   }
@@ -81,17 +82,23 @@ const adjustHeight = async () => {
   }
 };
 
-// Watch for external changes to message
+const handleFileLoad = async () => {
+  try {
+    const content = await loadSmiaFile();
+    emit("fileLoaded", content);
+  } catch (error) {
+    console.error("Error al cargar archivo:", error);
+  }
+};
+
 watch(message, () => {
   adjustHeight();
 });
 
-// Focus method for parent components
 const focus = () => {
   textareaRef.value?.focus();
 };
 
-// Expose methods to parent
 defineExpose({
   focus,
   clear: () => {
@@ -114,13 +121,18 @@ defineExpose({
       <button
         v-if="showSendButton"
         class="file-button"
-        :class="{ active: message.trim().length > 0 && !disabled }"
-        :disabled="!message.trim() || disabled"
-        @click=""
+        :class="{
+          active: !fileLoading && !props.disabled,
+          loading: fileLoading,
+        }"
+        :disabled="fileLoading || disabled"
+        @click="handleFileLoad"
         type="button"
+        title="Cargar archivo .smia"
       >
         <svg
-          class="send-icon text-white"
+          v-if="!fileLoading"
+          class="file-icon"
           aria-hidden="true"
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -135,6 +147,19 @@ defineExpose({
             stroke-width="2"
             d="M7 8v8a5 5 0 1 0 10 0V6.5a3.5 3.5 0 1 0-7 0V15a2 2 0 0 0 4 0V8"
           />
+        </svg>
+        <svg
+          v-else
+          class="loading-icon"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2" />
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" />
         </svg>
       </button>
       <textarea
@@ -170,7 +195,6 @@ defineExpose({
       </button>
     </div>
 
-    <!-- Contador de caracteres opcional -->
     <div v-if="message.length > 0" class="char-counter">{{ message.length }} caracteres</div>
   </div>
 </template>
@@ -261,6 +285,8 @@ defineExpose({
   cursor: pointer;
   transition: all var(--transition-fast);
   color: rgba(253, 253, 255, 0.5);
+  background: transparent;
+  border: none;
 }
 
 .file-button:hover:not(:disabled) {
@@ -268,13 +294,34 @@ defineExpose({
   transform: scale(1.05);
 }
 
+.file-button.active {
+  color: var(--color-primary);
+}
+
 .file-button.active:hover {
+  background: rgba(195, 221, 73, 0.1);
   transform: scale(1.05);
+}
+
+.file-button.loading {
+  color: var(--color-primary);
+  cursor: not-allowed;
 }
 
 .file-button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+.file-icon,
+.loading-icon {
+  width: 20px;
+  height: 20px;
+  transition: transform var(--transition-fast);
+}
+
+.loading-icon {
+  animation: spin 1s linear infinite;
 }
 
 .send-button {

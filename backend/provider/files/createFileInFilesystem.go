@@ -41,11 +41,15 @@ func createFileInFilesystem(file *os.File, path, content string, size int32, ses
 		return fmt.Errorf("el archivo '%s' ya existe", fileName)
 	}
 
+	// ! Obtener la partición montada
+	mountManager := mounted.GetMountManager()
+	partition, found := mountManager.GetMountedPartition(session.ID)
+	if !found {
+		return fmt.Errorf("no se encontró la partición con ID '%s'", session.ID)
+	}
+
 	// ! Obtener información del usuario actual para el archivo
-	currentUser, err := GetCurrentUserInfo(session, mounted.MountedPartition{
-		Path: "",
-		Name: "",
-	})
+	currentUser, err := GetCurrentUserInfo(session, partition)
 	if err != nil {
 		return fmt.Errorf("error al obtener información del usuario: %v", err)
 	}

@@ -1,5 +1,6 @@
 <script setup>
 import ChatInput from "../common/ChatInput.vue";
+import SmiaViewer from "../common/SmiaViewer.vue";
 import { ref, nextTick } from "vue";
 import "../../styles/chat-animations.css";
 import { sendCommand } from "../../services/send_commands.ts";
@@ -25,7 +26,6 @@ const handleSendMessage = async (message) => {
 
   await scrollToBottom();
 
-  // Crear el objeto comando con el formato correcto
   const commandObj = {
     command: message,
     timestamp: new Date().toISOString(),
@@ -45,6 +45,37 @@ const handleSendMessage = async (message) => {
 
 const handleInputChange = (value) => {};
 
+const handleFileLoaded = (content) => {
+  console.log("Archivo .smia cargado:", content);
+
+  messages.value.push({
+    id: crypto.randomUUID(),
+    text: content,
+    timestamp: new Date(),
+    type: "smia-file",
+    filename: "archivo.smia",
+  });
+  scrollToBottom();
+};
+
+const handleExecuteCommand = async (command) => {
+  console.log("Ejecutando comando individual:", command);
+  await handleSendMessage(command);
+};
+
+const handleExecuteAllCommands = async (commands) => {
+  console.log("Ejecutando todos los comandos:", commands);
+
+  await scrollToBottom();
+
+  for (const command of commands) {
+    await handleSendMessage(command);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  }
+
+  await scrollToBottom();
+};
+
 const getMessageIcon = (type) => {
   switch (type) {
     case "user":
@@ -57,6 +88,8 @@ const getMessageIcon = (type) => {
       return "👑";
     case "default":
       return "🟢";
+    case "smia-file":
+      return "📁";
     default:
       return "💬";
   }
@@ -87,6 +120,7 @@ const getMessageClass = (type) => {
         >
           <h2 class="text-2xl font-bold mb-4 text-gray-200">¡Bienvenido!</h2>
           <p class="text-gray-400">Escribe un mensaje para comenzar...</p>
+          <p class="text-gray-500 text-sm mt-2">O carga un archivo .smia usando el botón 📎</p>
         </div>
 
         <div
@@ -114,6 +148,8 @@ const getMessageClass = (type) => {
                     ? "Administrador Root"
                     : message.type === "default"
                     ? "Usuario Logueado"
+                    : message.type === "smia-file"
+                    ? "Archivo .smia"
                     : "Desconocido"
                 }}</span>
               </div>
@@ -121,8 +157,23 @@ const getMessageClass = (type) => {
                 {{ message.timestamp.toLocaleTimeString() }}
               </div>
             </div>
-            <div class="message-content text-gray-200 leading-relaxed whitespace-pre-line">
+
+            <!-- Contenido normal del mensaje -->
+            <div
+              v-if="message.type !== 'smia-file'"
+              class="message-content text-gray-200 leading-relaxed whitespace-pre-line"
+            >
               {{ message.text }}
+            </div>
+
+            <!-- Visor de archivo .smia -->
+            <div v-else class="message-content">
+              <SmiaViewer
+                :content="message.text"
+                :filename="message.filename || 'archivo.smia'"
+                @executeCommand="handleExecuteCommand"
+                @executeAll="handleExecuteAllCommands"
+              />
             </div>
           </div>
         </div>
@@ -134,6 +185,7 @@ const getMessageClass = (type) => {
           placeholder="Escribe tu mensaje aquí... (Enter para enviar, Shift+Enter para nueva línea)"
           @send="handleSendMessage"
           @input="handleInputChange"
+          @fileLoaded="handleFileLoaded"
           :disabled="false"
           :show-send-button="true"
           :max-rows="4"
@@ -144,7 +196,6 @@ const getMessageClass = (type) => {
 </template>
 
 <style scoped>
-/* Estilos personalizados que no se pueden hacer fácilmente con Tailwind */
 .messages-clean {
   display: flex;
   align-items: center;
@@ -179,6 +230,15 @@ const getMessageClass = (type) => {
 .message-default {
   border-left-color: #00ff7f; /* Verde primavera para usuarios default */
   background: rgba(0, 255, 127, 0.1);
+}
+
+.message-smia-file {
+  border-left-color: var(--color-primary);
+  background: rgba(195, 221, 73, 0.05);
+}
+
+.message-smia-file .message-content {
+  padding: 0; /* Remover padding para que el SmiaViewer maneje su propio espaciado */
 }
 
 .message-content {

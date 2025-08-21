@@ -110,3 +110,40 @@ func handleChgrp(w http.ResponseWriter, command string) {
 
 	utils.SendJSONResponse(w, response, http.StatusOK)
 }
+
+func handleViewUsers(w http.ResponseWriter, command string) {
+	params, err := Analyzer.ParseViewUsers(command)
+	if err != nil {
+		response := utils.CreateResponse(
+			err.Error(),
+			nil,
+			"system-error",
+		)
+
+		utils.SendJSONResponse(w, response, http.StatusBadRequest)
+		return
+	}
+
+	viewUsersResponse, err := users.ViewAllUsers(params)
+	if err != nil {
+		response := utils.CreateResponse(
+			err.Error(),
+			params,
+			"system-error",
+		)
+
+		utils.SendJSONResponse(w, response, http.StatusInternalServerError)
+		return
+	}
+
+	// Generar mensaje detallado con toda la información
+	message := users.GenerateDetailedMessage(viewUsersResponse)
+
+	response := utils.CreateResponse(
+		message,
+		viewUsersResponse,
+		"system",
+	)
+
+	utils.SendJSONResponse(w, response, http.StatusOK)
+}
