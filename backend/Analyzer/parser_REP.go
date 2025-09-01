@@ -9,9 +9,6 @@ import (
 
 // ParseRep parsea el comando REP y extrae sus parámetros
 func ParseRep(input string) (*structs.RepParams, error) {
-	fmt.Println("=== DEBUG PARSER REP ===")
-	fmt.Printf("Input recibido: '%s'\n", input)
-	fmt.Printf("Longitud input: %d\n", len(input))
 
 	params := &structs.RepParams{}
 
@@ -24,11 +21,6 @@ func ParseRep(input string) (*structs.RepParams, error) {
 	// Expresión regular para capturar parámetros con o sin comillas
 	re := regexp.MustCompile(`-(\w+)=(?:"([^"]*)"|([^\s]+))`)
 	matches := re.FindAllStringSubmatch(input, -1)
-
-	fmt.Printf("Matches encontrados: %d\n", len(matches))
-	for i, match := range matches {
-		fmt.Printf("Match %d: %v\n", i, match)
-	}
 
 	if len(matches) == 0 {
 		fmt.Println("ERROR: No se encontraron parámetros válidos")
@@ -43,8 +35,6 @@ func ParseRep(input string) (*structs.RepParams, error) {
 		} else {
 			value = match[3] // Valor sin comillas
 		}
-
-		fmt.Printf("Procesando parámetro: %s = %s\n", param, value)
 
 		switch param {
 		case "name":
@@ -93,9 +83,6 @@ func ParseRep(input string) (*structs.RepParams, error) {
 	if (params.Name == "file" || params.Name == "ls") && params.PathFileLS == "" {
 		return nil, fmt.Errorf("para reportes de tipo '%s' el parámetro -path_file_ls es obligatorio", params.Name)
 	}
-
-	fmt.Printf("Parámetros finales: %+v\n", params)
-	fmt.Println("=== FIN DEBUG PARSER REP ===")
 
 	return params, nil
 }

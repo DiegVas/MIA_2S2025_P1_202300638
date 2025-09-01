@@ -1,15 +1,12 @@
 package reports
 
 import (
-	"bytes"
-	"context"
 	"fmt"
 	"main/structs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
-
-	"github.com/goccy/go-graphviz"
 )
 
 // GenerateReport genera el reporte solicitado usando Graphviz
@@ -26,19 +23,6 @@ func GenerateReport(params *structs.RepParams) (string, error) {
 	switch params.Name {
 	case "mbr":
 		dotContent, err = generateMBRReport(params.ID)
-	case "test":
-		// Reporte de prueba simple
-		dotContent = `digraph Test_Report {
-    rankdir=TB;
-    node [shape=box, style=filled];
-    
-    start [label="Test Report", fillcolor=lightblue];
-    middle [label="This is a test\\nto verify Graphviz\\nworking correctly", fillcolor=lightgreen];
-    end [label="Success!", fillcolor=lightyellow];
-    
-    start -> middle -> end;
-}`
-		err = nil
 	case "disk":
 		dotContent, err = generateDiskReport(params.ID)
 	case "inode":
@@ -70,65 +54,81 @@ func GenerateReport(params *structs.RepParams) (string, error) {
 		return "", fmt.Errorf("el contenido DOT generado está vacío")
 	}
 
-	// Generar imagen con Graphviz
-	outputPath, err := renderGraphviz(dotContent, params.Path)
+	// Guardar archivo .dot en /tmp/
+	dotPath, err := saveDotFile(dotContent, params)
 	if err != nil {
-		return "", fmt.Errorf("error renderizando con Graphviz: %v", err)
+		return "", fmt.Errorf("error guardando archivo .dot: %v", err)
+	}
+
+	// Renderizar usando comando dot directo
+	outputPath, err := renderWithDotCommand(dotPath, params.Path)
+	if err != nil {
+		return "", fmt.Errorf("error renderizando con comando dot: %v", err)
 	}
 
 	return outputPath, nil
 }
 
-// renderGraphviz renderiza el contenido DOT como imagen
-func renderGraphviz(dotContent, outputPath string) (string, error) {
-	// Verificar que el contenido DOT no esté vacío
-	if len(strings.TrimSpace(dotContent)) == 0 {
-		return "", fmt.Errorf("contenido DOT está vacío")
-	}
-
-	ctx := context.Background()
-	g, err := graphviz.New(ctx)
-	if err != nil {
-		return "", fmt.Errorf("error creando instancia de graphviz: %v", err)
-	}
-	defer g.Close()
-
-	// Parsear el contenido DOT
-	graph, err := graphviz.ParseBytes([]byte(dotContent))
-	if err != nil {
-		return "", fmt.Errorf("error parseando DOT: %v", err)
-	}
-	defer graph.Close()
-
-	// Determinar formato basado en la extensión
+// renderWithDotCommand renderiza usando el comando dot directamente
+func renderWithDotCommand(dotPath, outputPath string) (string, error) {
+	// Determinar formato basado en la extensión del archivo de salida
 	ext := strings.ToLower(filepath.Ext(outputPath))
-	var format graphviz.Format
+	var format string
 
 	switch ext {
 	case ".png":
-		format = graphviz.PNG
+		format = "png"
 	case ".jpg", ".jpeg":
-		format = graphviz.JPG
+		format = "jpeg"
+	case ".pdf":
+		format = "pdf"
 	case ".svg":
-		format = graphviz.SVG
+		format = "svg"
 	default:
 		// Por defecto PNG
-		format = graphviz.PNG
+		format = "png"
 		if ext == "" {
 			outputPath += ".png"
 		}
 	}
 
-	// Renderizar a buffer y escribir al archivo
-	var buf bytes.Buffer
-	if err := g.Render(ctx, graph, format, &buf); err != nil {
-		return "", fmt.Errorf("error renderizando en buffer: %v", err)
+	// Crear directorio de salida si no existe
+	dir := filepath.Dir(outputPath)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return "", fmt.Errorf("error creando directorio de salida: %v", err)
 	}
 
-	// Escribir el buffer al archivo
-	if err := os.WriteFile(outputPath, buf.Bytes(), 0644); err != nil {
-		return "", fmt.Errorf("error escribiendo archivo: %v", err)
+	// Ejecutar comando dot
+	cmd := exec.Command("dot", fmt.Sprintf("-T%s", format), "-o", outputPath, dotPath)
+
+	// Capturar salida de error para debug
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("error ejecutando comando dot: %v\nSalida: %s", err, string(output))
 	}
 
 	return outputPath, nil
+}
+
+// saveDotFile guarda el contenido DOT en provider/reports/src y devuelve el path
+func saveDotFile(dotContent string, params *structs.RepParams) (string, error) {
+	// Usar directorio provider/reports/src
+	srcDir := "provider/reports/src"
+
+	// Crear directorio si no existe
+	if err := os.MkdirAll(srcDir, 0755); err != nil {
+		return "", fmt.Errorf("error creando directorio src: %v", err)
+	}
+
+	// Generar nombre del archivo .dot basado en el reporte
+	dotFileName := fmt.Sprintf("%s_%s.dot", params.Name, params.ID)
+	dotPath := filepath.Join(srcDir, dotFileName)
+
+	// Escribir el contenido DOT al archivo
+	if err := os.WriteFile(dotPath, []byte(dotContent), 0644); err != nil {
+		return "", fmt.Errorf("error escribiendo archivo .dot: %v", err)
+	}
+
+	fmt.Printf("Archivo DOT guardado en: %s\n", dotPath)
+	return dotPath, nil
 }

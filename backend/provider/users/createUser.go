@@ -61,18 +61,11 @@ func CreateUser(params *structs.UserParams) error {
 	}
 	usersFile += newUserLine + "\n"
 
-	fmt.Printf("=== DEBUG CreateUser ===\n")
-	fmt.Printf("Contenido antes de escribir: '%s'\n", usersFile)
-	fmt.Printf("Longitud: %d bytes\n", len(usersFile))
-	fmt.Printf("Nueva línea: '%s'\n", newUserLine)
-	fmt.Printf("=== FIN DEBUG ===\n")
-
 	err = WriteUsersFile(partition.Path, partition.Name, usersFile)
 	if err != nil {
 		fmt.Printf("ERROR en WriteUsersFile: %v\n", err)
 		return fmt.Errorf("error al escribir el archivo de usuarios: %v", err)
 	}
 
-	fmt.Printf("WriteUsersFile completado sin errores\n")
 	return nil
 }

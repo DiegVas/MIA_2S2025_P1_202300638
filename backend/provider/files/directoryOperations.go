@@ -168,7 +168,7 @@ func CreateNewDirectory(file *os.File, dirName string, user *structs.User, paren
 	}
 
 	// Agregar la entrada al directorio padre
-	err = AddFileToDirectory(file, dirName, freeInodeNum, parentInodeNum, inodePos, blockPos, bmBlockPos, blockCount)
+	err = AddFileToDirectoryWithIndirect(file, dirName, freeInodeNum, parentInodeNum, inodePos, blockPos, bmBlockPos, blockCount)
 	if err != nil {
 		return -1, err
 	}
@@ -177,6 +177,14 @@ func CreateNewDirectory(file *os.File, dirName string, user *structs.User, paren
 }
 
 func AddFileToDirectory(file *os.File, fileName string, fileInodeNum, dirInodeNum, inodePos, blockPos, bmBlockPos, blockCount int32) error {
+	// Usar la nueva implementación con soporte para bloques indirectos
+	// Esta función mantiene compatibilidad con código existente
+	return AddFileToDirectoryWithIndirect(file, fileName, fileInodeNum, dirInodeNum, inodePos, blockPos, bmBlockPos, blockCount)
+}
+
+// AddFileToDirectoryLegacy es la implementación original (solo bloques directos)
+// Se mantiene para referencia y casos especiales
+func AddFileToDirectoryLegacy(file *os.File, fileName string, fileInodeNum, dirInodeNum, inodePos, blockPos, bmBlockPos, blockCount int32) error {
 	// Leer el inodo del directorio
 	inodeBytes := make([]byte, structs.INODE_SIZE)
 	_, err := file.ReadAt(inodeBytes, int64(inodePos+(dirInodeNum*structs.INODE_SIZE)))
@@ -222,7 +230,8 @@ func AddFileToDirectory(file *os.File, fileName string, fileInodeNum, dirInodeNu
 			// Este slot está libre, crear un nuevo bloque de carpeta
 			newBlocks, err := FindFreeBlocks(file, bmBlockPos, blockCount, 1)
 			if err != nil {
-				continue
+				// Si no hay bloques libres, retornar error específico
+				return fmt.Errorf("no hay bloques libres disponibles para expandir el directorio: %v", err)
 			}
 
 			newBlockNum := newBlocks[0]

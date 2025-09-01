@@ -2,29 +2,8 @@ package reports
 
 import (
 	"fmt"
-	"main/provider/mounted"
 	"strings"
 )
-
-// generateDiskReport genera el reporte del disco completo
-func generateDiskReport(partitionID string) (string, error) {
-	mountedPartition, err := mounted.GetMountedPartition(partitionID)
-	if err != nil {
-		return "", fmt.Errorf("error obteniendo partición montada: %v", err)
-	}
-
-	var dot strings.Builder
-	dot.WriteString("digraph Disk_Report {\n")
-	dot.WriteString("    rankdir=LR;\n")
-	dot.WriteString("    node [shape=box];\n")
-
-	diskName := getDiskNameFromPath(mountedPartition.DiskPath)
-	dot.WriteString(fmt.Sprintf("    \"%s\" [label=\"Disco: %s\\nRuta: %s\"];\n",
-		diskName, diskName, mountedPartition.DiskPath))
-
-	dot.WriteString("}\n")
-	return dot.String(), nil
-}
 
 // generateInodeReport genera el reporte de inodos
 func generateInodeReport(partitionID string) (string, error) {

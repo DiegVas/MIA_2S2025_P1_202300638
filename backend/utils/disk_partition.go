@@ -103,7 +103,8 @@ func CreatePartition(params *structs.FdiskParams) error {
 	sizeInBytes := params.GetSizeInBytes()
 
 	if params.Type == LOGICAL {
-		return fmt.Errorf("la implementación de particiones lógicas aún no está completa")
+		// Implementación de particiones lógicas
+		return createLogicalPartition(diskFile, &mbr, params, sizeInBytes)
 	} else {
 		var newPartIndex int = -1
 		for i := 0; i < 4; i++ {
@@ -167,8 +168,194 @@ func CreatePartition(params *structs.FdiskParams) error {
 		if err != nil {
 			return fmt.Errorf("error al escribir la partición: %v", err)
 		}
+
+		// CRÍTICO: Si es una partición extendida, crear el primer EBR vacío
+		if params.Type == EXTENDED {
+			err = createInitialEBR(diskFile, mbr.Partitions[newPartIndex].Part_start)
+			if err != nil {
+				return fmt.Errorf("error al crear el EBR inicial: %v", err)
+			}
+		}
 	}
 
 	fmt.Printf("Partición '%s' creada exitosamente en el disco '%s'\n", params.Name, params.Path)
+	return nil
+}
+
+// createLogicalPartition crea una partición lógica dentro de una partición extendida
+func createLogicalPartition(diskFile *os.File, mbr *structs.MBR, params *structs.FdiskParams, sizeInBytes int32) error {
+	// Buscar la partición extendida
+	var extendedPartition *structs.PARTITION
+	for i := 0; i < 4; i++ {
+		if mbr.Partitions[i].Part_status[0] == 1 && mbr.Partitions[i].Part_type[0] == EXTENDED {
+			extendedPartition = &mbr.Partitions[i]
+			break
+		}
+	}
+
+	if extendedPartition == nil {
+		return errors.New("no se encontró una partición extendida para crear la partición lógica")
+	}
+
+	// Validar que el tamaño sea positivo y no exceda la partición extendida
+	if sizeInBytes <= 0 {
+		return errors.New("el tamaño de la partición lógica debe ser mayor que 0")
+	}
+
+	if sizeInBytes > extendedPartition.Part_size {
+		return errors.New("el tamaño de la partición lógica no puede ser mayor que el tamaño de la partición extendida")
+	}
+
+	// Verificar que no existe una partición con el mismo nombre (primarias/extendidas)
+	for i := 0; i < 4; i++ {
+		if mbr.Partitions[i].Part_status[0] == 1 {
+			partName := string(bytes.Trim(mbr.Partitions[i].Part_name[:], "\x00"))
+			if strings.EqualFold(partName, params.Name) {
+				return fmt.Errorf("ya existe una partición con el nombre '%s'", params.Name)
+			}
+		}
+	}
+
+	// Calcular el espacio disponible en la partición extendida
+	extendedStart := extendedPartition.Part_start
+	extendedSize := extendedPartition.Part_size
+	extendedEnd := extendedStart + extendedSize
+
+	// Buscar la posición donde crear la nueva partición lógica
+	currentPos := extendedStart
+	ebrSize := int32(30)    // Tamaño del EBR
+	lastEBRPos := int32(-1) // Posición del último EBR para actualizar su Part_next
+
+	// Leer todas las particiones lógicas existentes para encontrar el último EBR
+	for {
+		// Leer el EBR en la posición actual
+		ebrData := make([]byte, ebrSize)
+		_, err := diskFile.ReadAt(ebrData, int64(currentPos))
+		if err != nil {
+			break
+		}
+
+		// Verificar si hay una partición lógica en esta posición
+		partSize := int32(ebrData[6]) | int32(ebrData[7])<<8 | int32(ebrData[8])<<16 | int32(ebrData[9])<<24
+		nextEBR := int32(ebrData[10]) | int32(ebrData[11])<<8 | int32(ebrData[12])<<16 | int32(ebrData[13])<<24
+
+		// Si no hay partición aquí, podemos usar este espacio
+		if partSize == 0 {
+			break
+		}
+
+		// Verificar duplicado de nombre
+		partName := string(bytes.Trim(ebrData[14:30], "\x00"))
+		if strings.EqualFold(partName, params.Name) {
+			return fmt.Errorf("ya existe una partición lógica con el nombre '%s'", params.Name)
+		}
+
+		// Si no hay siguiente EBR, podemos crear después de esta partición
+		if nextEBR == 0 {
+			lastEBRPos = currentPos // Guardar la posición del último EBR
+			currentPos = currentPos + ebrSize + partSize
+			break
+		}
+
+		// Ir al siguiente EBR
+		currentPos = extendedStart + nextEBR
+	}
+
+	// Verificar que hay espacio suficiente
+	if currentPos+ebrSize+sizeInBytes > extendedEnd {
+		return errors.New("no hay espacio suficiente en la partición extendida para crear la partición lógica")
+	}
+
+	// Crear el nuevo EBR
+	var ebr structs.EBR
+	ebr.Part_mount[0] = 0 // No montado
+
+	switch params.Fit {
+	case BEST_FIT:
+		ebr.Part_fit[0] = 'B'
+	case WORST_FIT:
+		ebr.Part_fit[0] = 'W'
+	default:
+		ebr.Part_fit[0] = 'F'
+	}
+
+	ebr.Part_start = ebrSize // La partición empieza después del EBR
+	ebr.Part_size = sizeInBytes
+	ebr.Part_next = 0 // Por ahora no hay siguiente (se actualizará si se crea otra)
+	copy(ebr.Part_name[:], params.Name)
+
+	// Escribir el EBR al disco
+	var ebrBuffer bytes.Buffer
+	ebrBuffer.Write(ebr.Part_mount[:])
+	ebrBuffer.Write(ebr.Part_fit[:])
+	binary.Write(&ebrBuffer, binary.LittleEndian, ebr.Part_start)
+	binary.Write(&ebrBuffer, binary.LittleEndian, ebr.Part_size)
+	binary.Write(&ebrBuffer, binary.LittleEndian, ebr.Part_next)
+	ebrBuffer.Write(ebr.Part_name[:])
+
+	_, err := diskFile.WriteAt(ebrBuffer.Bytes(), int64(currentPos))
+	if err != nil {
+		return fmt.Errorf("error al escribir el EBR: %v", err)
+	}
+
+	// CRÍTICO: Actualizar el EBR anterior para que apunte al nuevo EBR
+	if lastEBRPos != -1 {
+		// Calcular la posición relativa del nuevo EBR desde el inicio de la partición extendida
+		newEBRRelativePos := currentPos - extendedStart
+
+		// Leer el EBR anterior
+		lastEBRData := make([]byte, ebrSize)
+		_, err := diskFile.ReadAt(lastEBRData, int64(lastEBRPos))
+		if err != nil {
+			return fmt.Errorf("error al leer el EBR anterior: %v", err)
+		}
+
+		// Actualizar el campo Part_next del EBR anterior
+		var lastEBRBuffer bytes.Buffer
+		lastEBRBuffer.Write(lastEBRData[:10])                                // Part_mount, Part_fit, Part_start, Part_size (10 bytes)
+		binary.Write(&lastEBRBuffer, binary.LittleEndian, newEBRRelativePos) // Part_next (4 bytes)
+		lastEBRBuffer.Write(lastEBRData[14:])                                // Part_name (16 bytes)
+
+		// Escribir el EBR anterior actualizado
+		_, err = diskFile.WriteAt(lastEBRBuffer.Bytes(), int64(lastEBRPos))
+		if err != nil {
+			return fmt.Errorf("error al actualizar el EBR anterior: %v", err)
+		}
+	}
+
+	// No incrementamos mbr.Mbr_partitions para particiones lógicas
+	// ya que este contador es solo para particiones primarias y extendidas
+
+	return nil
+}
+
+// createInitialEBR crea el primer EBR vacío cuando se crea una partición extendida
+func createInitialEBR(diskFile *os.File, extendedStart int32) error {
+	// Crear un EBR vacío
+	var ebr structs.EBR
+
+	// Inicializar todos los campos en cero/vacío
+	ebr.Part_mount[0] = 0 // No montado
+	ebr.Part_fit[0] = 0   // Sin ajuste definido
+	ebr.Part_start = 0    // Sin partición
+	ebr.Part_size = 0     // Sin tamaño
+	ebr.Part_next = 0     // Sin siguiente EBR
+	// ebr.Part_name ya está inicializado en ceros
+
+	// Escribir el EBR vacío al inicio de la partición extendida
+	var ebrBuffer bytes.Buffer
+	ebrBuffer.Write(ebr.Part_mount[:])
+	ebrBuffer.Write(ebr.Part_fit[:])
+	binary.Write(&ebrBuffer, binary.LittleEndian, ebr.Part_start)
+	binary.Write(&ebrBuffer, binary.LittleEndian, ebr.Part_size)
+	binary.Write(&ebrBuffer, binary.LittleEndian, ebr.Part_next)
+	ebrBuffer.Write(ebr.Part_name[:])
+
+	_, err := diskFile.WriteAt(ebrBuffer.Bytes(), int64(extendedStart))
+	if err != nil {
+		return fmt.Errorf("error al escribir el EBR inicial: %v", err)
+	}
+
+	fmt.Printf("EBR inicial creado en la posición %d\n", extendedStart)
 	return nil
 }

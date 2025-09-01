@@ -1,0 +1,20 @@
+digraph G {
+    node [shape=plaintext]
+
+    tabla [
+        label=<
+            <table BORDER="1" CELLBORDER="1" CELLSPACING="0">
+                <tr>
+                    <td bgcolor="lightgrey"><b>MBR</b></td>
+                    <td bgcolor="lightgrey"><b>Lógica</b></td>
+                    <td bgcolor="lightgrey"><b>Extendida</b></td>
+                </tr>
+                <tr>
+                    <td>MBR: 0.00%<br/>Particion1: 10.00%<br/>Particion1_1: 10.00%<br/>Libre: 90.00%<br/></td>
+                    <td></td>
+                    <td>Particion2: 10.00%<br/>└─ EBR: 0.00%<br/>└─ Particion3: 0.98%<br/>└─ EBR: 0.00%<br/>└─ Particion4: 2.93%<br/>└─ EBR: 0.00%<br/>└─ Particion5: 2.93%<br/>└─ Libre: 3.16%<br/></td>
+                </tr>
+            </table>
+        >
+    ];
+}

@@ -1,0 +1,39 @@
+digraph MBR_Report {
+    rankdir=TB;
+    node [shape=box, style=filled];
+    graph [fontname="Arial", fontsize=12];
+    node [fontname="Arial", fontsize=10];
+    edge [fontname="Arial"];
+
+    title [label="MBR Report\nDisco2.mia", fillcolor=lightblue, fontsize=14];
+
+    mbr_info [label="MBR Information\nDisk Size: 10.00 MB\nCreation Date: September 1, 2025\nTotal Partitions: 3", fillcolor=lightyellow];
+
+    primary_section [label="PRIMARY PARTITIONS", shape=box, style=filled, fillcolor=lightcyan];
+    primary_0 [label="Particion1\nType: Primary\nStatus: Active\nStart: 283\nSize: 1.00 MB\nFit: Worst Fit", fillcolor=lightgreen];
+    primary_section -> primary_0;
+    primary_1 [label="Particion1_1\nType: Primary\nStatus: Active\nStart: 283\nSize: 1.00 MB\nFit: Worst Fit", fillcolor=lightgreen];
+    primary_section -> primary_1;
+
+    extended_section [label="EXTENDED PARTITIONS", shape=box, style=filled, fillcolor=lightyellow];
+    extended_0 [label="Particion2\nType: Extended\nStatus: Active\nStart: 283\nSize: 1.00 MB\nFit: Worst Fit", fillcolor=orange];
+    extended_section -> extended_0;
+
+    subgraph cluster_logical {
+        label = "LOGICAL PARTITIONS & EBRs";
+        style = filled;
+        color = lightpink;
+        node [style=filled];
+
+        ebr_0 [label="EBR 0\nName: Particion3\nFit: Worst Fit\nStart: 30\nSize: 100.00 KB\nNext: 102430", shape=record, fillcolor=lightcoral];
+        ebr_1 [label="EBR 1\nName: Particion4\nFit: Worst Fit\nStart: 30\nSize: 300.00 KB\nNext: 409660", shape=record, fillcolor=lightcoral];
+        ebr_2 [label="EBR 2\nName: Particion5\nFit: Worst Fit\nStart: 30\nSize: 300.00 KB\nNext: 0", shape=record, fillcolor=lightcoral];
+        ebr_0 -> ebr_1 [style=dashed];
+        ebr_1 -> ebr_2 [style=dashed];
+    }
+
+    title -> mbr_info;
+    mbr_info -> primary_section;
+    mbr_info -> extended_section;
+    mbr_info -> cluster_logical;
+}

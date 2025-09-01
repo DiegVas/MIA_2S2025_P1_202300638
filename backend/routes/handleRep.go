@@ -12,9 +12,6 @@ import (
 )
 
 func handleRep(w http.ResponseWriter, command string) {
-	fmt.Println("=== DEBUG REP - INICIO ===")
-	fmt.Printf("Comando recibido: '%s'\n", command)
-	fmt.Printf("Longitud comando: %d\n", len(command))
 
 	// Parsear el comando REP
 	repParams, err := Analyzer.ParseRep(command)
@@ -27,10 +24,6 @@ func handleRep(w http.ResponseWriter, command string) {
 		return
 	}
 
-	fmt.Printf("Parámetros REP parseados: %+v\n", repParams)
-
-	// Generar el reporte según el tipo
-	fmt.Printf("Generando reporte tipo: %s\n", repParams.Name)
 	reportPath, err := reports.GenerateReport(repParams)
 	if err != nil {
 		fmt.Printf("ERROR generando reporte: %v\n", err)
@@ -42,7 +35,6 @@ func handleRep(w http.ResponseWriter, command string) {
 	}
 
 	fmt.Printf("Reporte generado exitosamente en: %s\n", reportPath)
-	fmt.Println("=== DEBUG REP - FIN ===")
 
 	// Respuesta exitosa
 	utils.SendJSONResponse(w, structs.Response{
@@ -122,10 +114,6 @@ func HandleRep(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("Parámetros REP parseados: %+v\n", repParams)
-
-	// Generar el reporte según el tipo
-	fmt.Printf("Generando reporte tipo: %s\n", repParams.Name)
 	reportPath, err := reports.GenerateReport(repParams)
 	if err != nil {
 		fmt.Printf("ERROR generando reporte: %v\n", err)
@@ -135,9 +123,6 @@ func HandleRep(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusInternalServerError)
 		return
 	}
-
-	fmt.Printf("Reporte generado exitosamente en: %s\n", reportPath)
-	fmt.Println("=== DEBUG REP - FIN ===")
 
 	// Respuesta exitosa
 	utils.SendJSONResponse(w, structs.Response{

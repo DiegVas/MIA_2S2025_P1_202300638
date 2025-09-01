@@ -24,16 +24,22 @@ func readLogicalPartitions(diskPath string, extendedStart int32) ([]structs.Part
 			break
 		}
 
-		partName := strings.TrimRight(string(ebrBytes[26:42]), "\x00")
-		if partName == "" {
+		// Leer los campos del EBR usando la estructura correcta
+		// Byte 0: Part_mount
+		// Byte 1: Part_fit
+		// Bytes 2-5: Part_start (int32)
+		// Bytes 6-9: Part_size (int32)
+		// Bytes 10-13: Part_next (int32)
+		// Bytes 14-29: Part_name (16 bytes)
+
+		partStart := int32(ebrBytes[2]) | int32(ebrBytes[3])<<8 | int32(ebrBytes[4])<<16 | int32(ebrBytes[5])<<24
+		partSize := int32(ebrBytes[6]) | int32(ebrBytes[7])<<8 | int32(ebrBytes[8])<<16 | int32(ebrBytes[9])<<24
+		nextEBR := int32(ebrBytes[10]) | int32(ebrBytes[11])<<8 | int32(ebrBytes[12])<<16 | int32(ebrBytes[13])<<24
+		partName := strings.TrimRight(string(ebrBytes[14:30]), "\x00")
+
+		if partSize == 0 {
 			break
 		}
-
-		var partStart, partSize, nextEBR int32
-
-		partStart = int32(ebrBytes[8]) | int32(ebrBytes[9])<<8 | int32(ebrBytes[10])<<16 | int32(ebrBytes[11])<<24
-		partSize = int32(ebrBytes[12]) | int32(ebrBytes[13])<<8 | int32(ebrBytes[14])<<16 | int32(ebrBytes[15])<<24
-		nextEBR = int32(ebrBytes[16]) | int32(ebrBytes[17])<<8 | int32(ebrBytes[18])<<16 | int32(ebrBytes[19])<<24
 
 		fit := "First Fit"
 		if len(ebrBytes) > 2 {
