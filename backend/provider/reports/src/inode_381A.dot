@@ -1,0 +1,24 @@
+digraph Inode_Report {
+    rankdir=TB;
+    node [shape=record, style=filled];
+    graph [fontname="Arial", fontsize=12];
+    node [fontname="Arial", fontsize=10];
+    edge [fontname="Arial"];
+
+    title [label="INODE Report\nPartición: 381A", fillcolor=lightblue, fontsize=14];
+
+    inode_0 [label="INODO 0|{UID: 0|GID: 0}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1230|Bloques: [3...]}|{A-time: 2025-09-02 01:09}|{C-time: 2025-09-02 01:09}|{M-time: 2025-09-02 01:09}", fillcolor=lightyellow];
+    inode_1 [label="INODO 1|{UID: 1|GID: 1}|{Tamaño: 77 bytes|Tipo: Archivo}|{Permisos: 1230|Bloques: [1...]}|{A-time: 2025-09-02 01:09}|{C-time: 2025-09-02 01:09}|{M-time: 2025-09-02 01:09}", fillcolor=lightyellow];
+    inode_2 [label="INODO 2|{UID: 2|GID: 2}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1363|Bloques: [2...]}|{A-time: 2025-09-02 01:09}|{C-time: 2025-09-02 01:09}|{M-time: 2025-09-02 01:09}", fillcolor=lightyellow];
+    inode_3 [label="INODO 3|{UID: 2|GID: 2}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1363|Bloques: [4...]}|{A-time: 2025-09-02 01:09}|{C-time: 2025-09-02 01:09}|{M-time: 2025-09-02 01:09}", fillcolor=lightyellow];
+    inode_4 [label="INODO 4|{UID: 2|GID: 2}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1363|Bloques: [5...]}|{A-time: 2025-09-02 01:09}|{C-time: 2025-09-02 01:09}|{M-time: 2025-09-02 01:09}", fillcolor=lightyellow];
+    inode_5 [label="INODO 5|{UID: 2|GID: 2}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1363|Bloques: [6...]}|{A-time: 2025-09-02 01:09}|{C-time: 2025-09-02 01:09}|{M-time: 2025-09-02 01:09}", fillcolor=lightyellow];
+
+    // Conexiones de la lista enlazada
+    title -> inode_0;
+    inode_0 -> inode_1;
+    inode_1 -> inode_2;
+    inode_2 -> inode_3;
+    inode_3 -> inode_4;
+    inode_4 -> inode_5;
+}

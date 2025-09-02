@@ -24,7 +24,7 @@ func AddFileToDirectoryWithIndirect(file *os.File, fileName string, fileInodeNum
 	binary.Read(buffer, binary.LittleEndian, &dirInode)
 
 	// 1. FASE 1: Buscar en bloques directos (0-11)
-	found, err := addToDirectBlocks(file, fileName, fileInodeNum, &dirInode, blockPos)
+	found, err := addToDirectBlocks(file, fileName, fileInodeNum, &dirInode, blockPos, bmBlockPos, blockCount)
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func AddFileToDirectoryWithIndirect(file *os.File, fileName string, fileInodeNum
 
 // addToDirectBlocks busca espacio en los primeros 12 bloques directos
 func addToDirectBlocks(file *os.File, fileName string, fileInodeNum int32,
-	dirInode *structs.Inode, blockPos int32) (bool, error) {
+	dirInode *structs.Inode, blockPos, bmBlockPos, blockCount int32) (bool, error) {
 
 	for i := 0; i < 12; i++ {
 		if dirInode.I_block[i] != 0 {
@@ -79,7 +79,7 @@ func addToDirectBlocks(file *os.File, fileName string, fileInodeNum int32,
 			}
 		} else {
 			// Slot libre - crear nuevo bloque
-			newBlockNum, err := createNewFolderBlockWithData(file, fileName, fileInodeNum, blockPos, 0, 0)
+			newBlockNum, err := createNewFolderBlockWithData(file, fileName, fileInodeNum, blockPos, bmBlockPos, blockCount)
 			if err != nil {
 				return false, err
 			}

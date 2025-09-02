@@ -3,23 +3,10 @@ package reports
 import (
 	"fmt"
 	"main/provider/mounted"
-	"main/structs"
-	"main/utils"
-	"os"
 	"strings"
 )
 
-// DiskElement representa un elemento del disco (MBR, partición, espacio libre)
-type DiskElement struct {
-	Name        string
-	Type        string // "MBR", "Primaria", "Extendida", "Lógica", "Libre"
-	Start       int32
-	Size        int32
-	Percentage  float64
-	SubElements []DiskElement // Para particiones lógicas dentro de extendida
-}
-
-// generateDiskReport genera el reporte del disco con todos los porcentajes
+// generateDiskReport genera el reporte DISK mostrando la estructura de particiones y porcentajes
 func generateDiskReport(partitionID string) (string, error) {
 	// Obtener información de la partición montada
 	mountManager := mounted.GetMountManager()
@@ -29,273 +16,182 @@ func generateDiskReport(partitionID string) (string, error) {
 	}
 
 	// Leer el MBR del disco
-	mbr, err := utils.ReadMBR(mountedPartition.Path)
+	mbr, err := readMBRFromDisk(mountedPartition.Path)
 	if err != nil {
 		return "", fmt.Errorf("error leyendo MBR: %v", err)
 	}
 
-	// Analizar la estructura del disco
-	diskElements, err := analyzeDiskStructure(mountedPartition.Path, mbr)
-	if err != nil {
-		return "", fmt.Errorf("error analizando estructura del disco: %v", err)
-	}
+	// Analizar todas las particiones y calcular porcentajes
+	diskSize := float64(mbr.Mbr_size)
+	var primaryPartitions []partitionInfo
+	var extendedPartitions []extendedPartitionInfo
+	var usedSpace float64
 
-	// Generar contenido DOT con tabla completa
-	dotContent := generateDiskTable(diskElements, mbr.Mbr_size)
-
-	return dotContent, nil
-}
-
-// analyzeDiskStructure analiza toda la estructura del disco y calcula porcentajes
-func analyzeDiskStructure(diskPath string, mbr *structs.MBR) ([]DiskElement, error) {
-	var elements []DiskElement
-	totalSize := mbr.Mbr_size
-	currentPos := int32(283) // Después del MBR y las 4 entradas de partición (47 + 4*59)
-
-	// Elemento del MBR
-	mbrElement := DiskElement{
-		Name:       "MBR",
-		Type:       "MBR",
-		Start:      0,
-		Size:       283,
-		Percentage: float64(283) / float64(totalSize) * 100,
-	}
-	elements = append(elements, mbrElement)
-
-	// Procesar las 4 particiones en orden
-	for i := 0; i < 4; i++ {
-		partition := &mbr.Partitions[i]
-
-		// Saltar particiones vacías
-		if partition.Part_size == 0 {
-			continue
-		}
-
-		// Agregar espacio libre antes de la partición si existe
-		if partition.Part_start > currentPos {
-			freeSize := partition.Part_start - currentPos
-			freeElement := DiskElement{
-				Name:       "Libre",
-				Type:       "Libre",
-				Start:      currentPos,
-				Size:       freeSize,
-				Percentage: float64(freeSize) / float64(totalSize) * 100,
-			}
-			elements = append(elements, freeElement)
-		}
-
+	// Procesar particiones del MBR
+	for i, partition := range mbr.Partitions {
 		partName := strings.TrimRight(string(partition.Part_name[:]), "\x00")
-		if partName == "" {
-			partName = fmt.Sprintf("Partición_%d", i+1)
-		}
 
-		// Determinar tipo de partición
-		if partition.Part_type[0] == 'E' || partition.Part_type[0] == 'e' {
-			// Partición extendida
-			extElement := DiskElement{
-				Name:       partName,
-				Type:       "Extendida",
-				Start:      partition.Part_start,
-				Size:       partition.Part_size,
-				Percentage: float64(partition.Part_size) / float64(totalSize) * 100,
-			}
+		// Si la partición tiene nombre y tamaño, está en uso
+		if partName != "" && partition.Part_size > 0 {
+			partType := string(partition.Part_type[:1])
+			percentage := (float64(partition.Part_size) / diskSize) * 100
 
-			// Analizar particiones lógicas dentro de la extendida
-			logicals, err := analyzeLogicalPartitions(diskPath, partition.Part_start, partition.Part_size, totalSize)
-			if err == nil {
-				extElement.SubElements = logicals
-			}
-
-			elements = append(elements, extElement)
-		} else {
-			// Partición primaria
-			primElement := DiskElement{
-				Name:       partName,
-				Type:       "Primaria",
-				Start:      partition.Part_start,
-				Size:       partition.Part_size,
-				Percentage: float64(partition.Part_size) / float64(totalSize) * 100,
-			}
-			elements = append(elements, primElement)
-		}
-
-		currentPos = partition.Part_start + partition.Part_size
-	}
-
-	// Agregar espacio libre al final si existe
-	if currentPos < totalSize {
-		freeSize := totalSize - currentPos
-		freeElement := DiskElement{
-			Name:       "Libre",
-			Type:       "Libre",
-			Start:      currentPos,
-			Size:       freeSize,
-			Percentage: float64(freeSize) / float64(totalSize) * 100,
-		}
-		elements = append(elements, freeElement)
-	}
-
-	return elements, nil
-}
-
-// analyzeLogicalPartitions analiza las particiones lógicas dentro de una extendida
-func analyzeLogicalPartitions(diskPath string, extStart, extSize int32, totalDiskSize int32) ([]DiskElement, error) {
-	var logicals []DiskElement
-
-	file, err := os.Open(diskPath)
-	if err != nil {
-		return logicals, err
-	}
-	defer file.Close()
-
-	currentPos := extStart
-	ebrSize := int32(30) // Tamaño del EBR
-
-	for {
-		// Leer EBR
-		ebrBytes := make([]byte, 30)
-		_, err := file.ReadAt(ebrBytes, int64(currentPos))
-		if err != nil {
-			break
-		}
-
-		// Parsear EBR
-		partStart := int32(ebrBytes[2]) | int32(ebrBytes[3])<<8 | int32(ebrBytes[4])<<16 | int32(ebrBytes[5])<<24
-		partSize := int32(ebrBytes[6]) | int32(ebrBytes[7])<<8 | int32(ebrBytes[8])<<16 | int32(ebrBytes[9])<<24
-		nextEBR := int32(ebrBytes[10]) | int32(ebrBytes[11])<<8 | int32(ebrBytes[12])<<16 | int32(ebrBytes[13])<<24
-		partName := strings.TrimRight(string(ebrBytes[14:30]), "\x00")
-
-		if partSize == 0 {
-			break
-		}
-
-		if partName == "" {
-			partName = "Lógica"
-		}
-
-		// Agregar EBR
-		ebrElement := DiskElement{
-			Name:       "EBR",
-			Type:       "EBR",
-			Start:      currentPos,
-			Size:       ebrSize,
-			Percentage: float64(ebrSize) / float64(totalDiskSize) * 100,
-		}
-		logicals = append(logicals, ebrElement)
-
-		// Agregar partición lógica
-		logElement := DiskElement{
-			Name:       partName,
-			Type:       "Lógica",
-			Start:      currentPos + partStart,
-			Size:       partSize,
-			Percentage: float64(partSize) / float64(totalDiskSize) * 100,
-		}
-		logicals = append(logicals, logElement)
-
-		// Calcular espacio libre dentro de esta sección
-		nextSectionStart := currentPos + partStart + partSize
-		if nextEBR != 0 {
-			nextEBRPos := extStart + nextEBR
-			if nextEBRPos > nextSectionStart {
-				freeSize := nextEBRPos - nextSectionStart
-				freeElement := DiskElement{
-					Name:       "Libre",
-					Type:       "Libre",
-					Start:      nextSectionStart,
-					Size:       freeSize,
-					Percentage: float64(freeSize) / float64(totalDiskSize) * 100,
+			if partType == "P" || partType == "p" {
+				// Partición primaria
+				partInfo := partitionInfo{
+					Name:       partName,
+					Size:       partition.Part_size,
+					Start:      partition.Part_start,
+					Type:       "Primaria",
+					Percentage: percentage,
+					Index:      i,
 				}
-				logicals = append(logicals, freeElement)
-			}
-			currentPos = nextEBRPos
-		} else {
-			// Último EBR, verificar espacio libre hasta el final de la extendida
-			extEnd := extStart + extSize
-			if nextSectionStart < extEnd {
-				freeSize := extEnd - nextSectionStart
-				freeElement := DiskElement{
-					Name:       "Libre",
-					Type:       "Libre",
-					Start:      nextSectionStart,
-					Size:       freeSize,
-					Percentage: float64(freeSize) / float64(totalDiskSize) * 100,
+				primaryPartitions = append(primaryPartitions, partInfo)
+				usedSpace += float64(partition.Part_size)
+
+			} else if partType == "E" || partType == "e" {
+				// Partición extendida
+				logicalPartitions := readLogicalPartitionsFromEBR(mountedPartition.Path, partition.Part_start)
+
+				// Calcular espacio usado por particiones lógicas
+				var logicalUsedSpace float64
+				var logicals []partitionInfo
+
+				for _, logical := range logicalPartitions {
+					logicalPercentage := (float64(logical.Size) / diskSize) * 100
+					logicalInfo := partitionInfo{
+						Name:       logical.Name,
+						Size:       logical.Size,
+						Start:      logical.Start,
+						Type:       "Lógica",
+						Percentage: logicalPercentage,
+						Index:      -1, // Las lógicas no tienen índice en el MBR
+					}
+					logicals = append(logicals, logicalInfo)
+					logicalUsedSpace += float64(logical.Size)
 				}
-				logicals = append(logicals, freeElement)
+
+				// Calcular espacio libre dentro de la partición extendida
+				extendedFreeSpace := float64(partition.Part_size) - logicalUsedSpace
+				extendedFreePercentage := (extendedFreeSpace / diskSize) * 100
+
+				extInfo := extendedPartitionInfo{
+					Name:                partName,
+					Size:                partition.Part_size,
+					Start:               partition.Part_start,
+					Percentage:          percentage,
+					LogicalPartitions:   logicals,
+					FreeSpace:           int32(extendedFreeSpace),
+					FreeSpacePercentage: extendedFreePercentage,
+					Index:               i,
+				}
+				extendedPartitions = append(extendedPartitions, extInfo)
+				usedSpace += float64(partition.Part_size)
 			}
-			break
 		}
 	}
 
-	return logicals, nil
-}
+	// Calcular espacio libre del disco
+	freeSpace := diskSize - usedSpace
+	freePercentage := (freeSpace / diskSize) * 100
 
-// generateDiskTable genera la tabla HTML con la estructura del disco usando la plantilla base
-func generateDiskTable(elements []DiskElement, totalSize int32) string {
-	// Separar elementos por tipo
-	var mbrContent, logicaContent, extendidaContent strings.Builder
+	// Generar contenido DOT
+	var dot strings.Builder
 
-	for _, element := range elements {
-		elementInfo := fmt.Sprintf("%s: %.2f%%<br/>", element.Name, element.Percentage)
+	// Iniciar el grafo
+	dot.WriteString("digraph DISK_Report {\n")
+	dot.WriteString("    rankdir=TB;\n")
+	dot.WriteString("    node [shape=record, style=filled];\n")
+	dot.WriteString("    graph [fontname=\"Arial\", fontsize=12];\n")
+	dot.WriteString("    node [fontname=\"Arial\", fontsize=10];\n\n")
 
-		switch element.Type {
-		case "MBR":
-			mbrContent.WriteString(elementInfo)
-		case "Primaria":
-			mbrContent.WriteString(elementInfo)
-		case "Extendida":
-			extendidaContent.WriteString(elementInfo)
-			// TODAS las particiones lógicas y EBRs van en la columna Extendida
-			for _, subElement := range element.SubElements {
-				subInfo := fmt.Sprintf("└─ %s: %.2f%%<br/>", subElement.Name, subElement.Percentage)
-				extendidaContent.WriteString(subInfo)
-			}
-		case "Libre":
-			mbrContent.WriteString(elementInfo)
+	// Título del reporte
+	diskName := getDiskNameFromPath(mountedPartition.Path)
+	titleLabel := fmt.Sprintf("DISK Report\\n%s", escapeLabel(diskName))
+	dot.WriteString(fmt.Sprintf("    title [label=\"%s\", fillcolor=lightblue, fontsize=14];\n\n", titleLabel))
+
+	// Información general del disco
+	diskInfo := fmt.Sprintf("Tamaño Total: %s|Espacio Libre: %.2f%%",
+		formatDiskSize(mbr.Mbr_size), freePercentage)
+	dot.WriteString(fmt.Sprintf("    disk_info [label=\"%s\", fillcolor=lightgray];\n\n", diskInfo))
+
+	// Tabla de estructura del disco
+	dot.WriteString("    disk_structure [label=\"")
+
+	// Header de la tabla
+	dot.WriteString("Estructura del Disco|")
+	dot.WriteString("{Componente|Tamaño|Porcentaje|Detalles}|")
+
+	// MBR (no cuenta para el porcentaje pero se muestra)
+	dot.WriteString("{MBR|47 bytes|N/A|Master Boot Record}|")
+
+	// Particiones primarias
+	for _, part := range primaryPartitions {
+		dot.WriteString(fmt.Sprintf("{%s|%s|%.2f%%|Partición Primaria}|",
+			escapeLabel(part.Name),
+			formatDiskSize(part.Size),
+			part.Percentage))
+	}
+
+	// Particiones extendidas y sus lógicas
+	for _, ext := range extendedPartitions {
+		dot.WriteString(fmt.Sprintf("{%s|%s|%.2f%%|Partición Extendida}|",
+			escapeLabel(ext.Name),
+			formatDiskSize(ext.Size),
+			ext.Percentage))
+
+		// Mostrar particiones lógicas dentro de la extendida
+		for _, logical := range ext.LogicalPartitions {
+			dot.WriteString(fmt.Sprintf("{  └─ %s|%s|%.2f%%|Partición Lógica}|",
+				escapeLabel(logical.Name),
+				formatDiskSize(logical.Size),
+				logical.Percentage))
+		}
+
+		// Mostrar espacio libre de la extendida si existe
+		if ext.FreeSpace > 0 {
+			dot.WriteString(fmt.Sprintf("{  └─ Libre (Ext)|%s|%.2f%%|Espacio libre en extendida}|",
+				formatDiskSize(ext.FreeSpace),
+				ext.FreeSpacePercentage))
 		}
 	}
 
-	// Usar la plantilla base corregida
-	dotContent := fmt.Sprintf(`digraph G {
-    node [shape=plaintext]
+	// Espacio libre del disco
+	if freeSpace > 0 {
+		dot.WriteString(fmt.Sprintf("{Espacio Libre|%s|%.2f%%|Espacio no particionado}",
+			formatDiskSize(int32(freeSpace)),
+			freePercentage))
+	}
 
-    tabla [
-        label=<
-            <table BORDER="1" CELLBORDER="1" CELLSPACING="0">
-                <tr>
-                    <td bgcolor="lightgrey"><b>MBR</b></td>
-                    <td bgcolor="lightgrey"><b>Lógica</b></td>
-                    <td bgcolor="lightgrey"><b>Extendida</b></td>
-                </tr>
-                <tr>
-                    <td>%s</td>
-                    <td>%s</td>
-                    <td>%s</td>
-                </tr>
-            </table>
-        >
-    ];
-}`, mbrContent.String(), logicaContent.String(), extendidaContent.String())
+	dot.WriteString("\", fillcolor=lightyellow];\n\n")
 
-	return dotContent
+	// Conexiones
+	dot.WriteString("    title -> disk_info;\n")
+	dot.WriteString("    disk_info -> disk_structure;\n")
+
+	dot.WriteString("}\n")
+
+	return dot.String(), nil
 }
 
-// getColorForType retorna el color correspondiente a cada tipo de elemento
-func getColorForType(elementType string) string {
-	switch elementType {
-	case "MBR":
-		return "lightcoral"
-	case "Primaria":
-		return "lightgreen"
-	case "Extendida":
-		return "lightyellow"
-	case "Lógica":
-		return "lightpink"
-	case "EBR":
-		return "orange"
-	case "Libre":
-		return "lightgray"
-	default:
-		return "white"
-	}
+// partitionInfo estructura auxiliar para manejar información de particiones
+type partitionInfo struct {
+	Name       string
+	Size       int32
+	Start      int32
+	Type       string
+	Percentage float64
+	Index      int
+}
+
+// extendedPartitionInfo estructura auxiliar para manejar particiones extendidas
+type extendedPartitionInfo struct {
+	Name                string
+	Size                int32
+	Start               int32
+	Percentage          float64
+	LogicalPartitions   []partitionInfo
+	FreeSpace           int32
+	FreeSpacePercentage float64
+	Index               int
 }

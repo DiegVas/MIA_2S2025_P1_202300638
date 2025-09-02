@@ -2,25 +2,38 @@ package files
 
 import (
 	"errors"
+	"fmt"
 	"main/structs"
 	"os"
 )
 
 func FindFreeBlocks(file *os.File, bmBlockPos, blockCount, blocksNeeded int32) ([]int32, error) {
+
 	bitmap := make([]byte, blockCount)
 	_, err := file.ReadAt(bitmap, int64(bmBlockPos))
 	if err != nil {
+		fmt.Printf("❌ ERROR leyendo bitmap: %v\n", err)
 		return nil, err
+	}
+
+	// Debug: mostrar estado del bitmap
+	usedBlocks := 0
+	for i := int32(0); i < blockCount; i++ {
+		if bitmap[i] == 1 {
+			usedBlocks++
+		}
 	}
 
 	var freeBlocks []int32
 	for i := int32(2); i < blockCount && int32(len(freeBlocks)) < blocksNeeded; i++ {
 		if bitmap[i] == 0 {
 			freeBlocks = append(freeBlocks, i)
+
 		}
 	}
 
 	if int32(len(freeBlocks)) < blocksNeeded {
+		fmt.Printf("❌ ERROR: no hay suficientes bloques libres (encontrados=%d, necesarios=%d)\n", len(freeBlocks), blocksNeeded)
 		return nil, errors.New("no hay suficientes bloques libres disponibles")
 	}
 

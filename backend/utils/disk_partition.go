@@ -139,7 +139,18 @@ func CreatePartition(params *structs.FdiskParams) error {
 		mbr.Partitions[newPartIndex].Part_correlative = mbr.Mbr_partitions + 1
 		mbr.Mbr_partitions++
 
-		mbr.Partitions[newPartIndex].Part_start = int32(MBR_SIZE) + int32(4*int(partitionSize))
+		// Buscar la siguiente posición disponible después de las particiones existentes
+		nextAvailableStart := int32(MBR_SIZE)
+		for i := 0; i < 4; i++ {
+			if mbr.Partitions[i].Part_status[0] != 0 && mbr.Partitions[i].Part_size > 0 {
+				partEnd := mbr.Partitions[i].Part_start + mbr.Partitions[i].Part_size
+				if partEnd > nextAvailableStart {
+					nextAvailableStart = partEnd
+				}
+			}
+		}
+
+		mbr.Partitions[newPartIndex].Part_start = nextAvailableStart
 		var mbrBuffer bytes.Buffer
 		binary.Write(&mbrBuffer, binary.LittleEndian, mbr.Mbr_size)
 		mbrBuffer.Write(mbr.Mbr_timestamp[:])

@@ -1,0 +1,26 @@
+digraph Block_Report {
+    rankdir=TB;
+    node [shape=record, style=filled];
+    graph [fontname="Arial", fontsize=12];
+    node [fontname="Arial", fontsize=10];
+    edge [fontname="Arial"];
+
+    title [label="BLOCK Report\nPartición: 381A", fillcolor=lightblue, fontsize=14];
+
+    block_0 [label="BLOQUE 0 (CARPETA)|{users.txt → inodo 1}", fillcolor=lightyellow];
+    block_1 [label="BLOQUE 1 (CARPETA)|{1, G, root \n → inodo 1428171825}|{, root, root → inodo 842080300}|{3 \n2, G, usu → inodo 1869181537}|{... y 1 más}", fillcolor=lightyellow];
+    block_2 [label="BLOQUE 2 (CARPETA)|{. → inodo 2}|{user → inodo 3}", fillcolor=lightyellow];
+    block_3 [label="BLOQUE 3 (CARPETA)|{home → inodo 2}", fillcolor=lightyellow];
+    block_4 [label="BLOQUE 4 (CARPETA)|{. → inodo 3}|{.. → inodo 2}|{docs → inodo 4}", fillcolor=lightyellow];
+    block_5 [label="BLOQUE 5 (CARPETA)|{. → inodo 4}|{.. → inodo 3}|{usac → inodo 5}", fillcolor=lightyellow];
+    block_6 [label="BLOQUE 6 (CARPETA)|{. → inodo 5}|{.. → inodo 4}", fillcolor=lightyellow];
+
+    // Conexiones de la lista enlazada
+    title -> block_0;
+    block_0 -> block_1;
+    block_1 -> block_2;
+    block_2 -> block_3;
+    block_3 -> block_4;
+    block_4 -> block_5;
+    block_5 -> block_6;
+}

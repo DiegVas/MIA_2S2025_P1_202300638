@@ -107,12 +107,15 @@ func CreateNewDirectory(file *os.File, dirName string, user *structs.User, paren
 	// Encontrar un inodo libre
 	freeInodeNum, err := FindFreeInode(file, bmInodePos, inodeCount)
 	if err != nil {
+		fmt.Printf("❌ ERROR buscando inodo libre: %v\n", err)
 		return -1, err
 	}
 
 	// Encontrar un bloque libre
+
 	freeBlocks, err := FindFreeBlocks(file, bmBlockPos, blockCount, 1)
 	if err != nil {
+
 		return -1, err
 	}
 	blockNum := freeBlocks[0]
