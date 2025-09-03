@@ -1,0 +1,53 @@
+digraph LS_Report {
+    rankdir=TB;
+    node [shape=plaintext];
+    edge [style=invisible];
+    title [label=<<TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" BGCOLOR="lightblue">
+        <TR><TD COLSPAN="7"><B>Reporte LS - Directorio: /</B></TD></TR>
+        <TR>
+            <TD><B>Permisos</B></TD>
+            <TD><B>Owner</B></TD>
+            <TD><B>Group</B></TD>
+            <TD><B>Size</B></TD>
+            <TD><B>Date</B></TD>
+            <TD><B>Type</B></TD>
+            <TD><B>Name</B></TD>
+        </TR>
+        <TR>
+            <TD>--wxrw--wx</TD>
+            <TD>1</TD>
+            <TD>1</TD>
+            <TD>64</TD>
+            <TD>N/A</TD>
+            <TD>dir</TD>
+            <TD>root</TD>
+        </TR>
+        <TR>
+            <TD>--wxrw--wx</TD>
+            <TD>1</TD>
+            <TD>1</TD>
+            <TD>64</TD>
+            <TD>N/A</TD>
+            <TD>dir</TD>
+            <TD>test</TD>
+        </TR>
+        <TR>
+            <TD>--wxrw--wx</TD>
+            <TD>1</TD>
+            <TD>1</TD>
+            <TD>64</TD>
+            <TD>N/A</TD>
+            <TD>dir</TD>
+            <TD>hola</TD>
+        </TR>
+        <TR>
+            <TD>--wxrw--wx</TD>
+            <TD>1</TD>
+            <TD>1</TD>
+            <TD>64</TD>
+            <TD>N/A</TD>
+            <TD>dir</TD>
+            <TD>home</TD>
+        </TR>
+    </TABLE>>];
+}

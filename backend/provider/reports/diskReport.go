@@ -36,7 +36,8 @@ func generateDiskReport(partitionID string) (string, error) {
 			partType := string(partition.Part_type[:1])
 			percentage := (float64(partition.Part_size) / diskSize) * 100
 
-			if partType == "P" || partType == "p" {
+			switch partType {
+			case "P", "p":
 				// Partición primaria
 				partInfo := partitionInfo{
 					Name:       partName,
@@ -49,7 +50,7 @@ func generateDiskReport(partitionID string) (string, error) {
 				primaryPartitions = append(primaryPartitions, partInfo)
 				usedSpace += float64(partition.Part_size)
 
-			} else if partType == "E" || partType == "e" {
+			case "E", "e":
 				// Partición extendida
 				logicalPartitions := readLogicalPartitionsFromEBR(mountedPartition.Path, partition.Part_start)
 

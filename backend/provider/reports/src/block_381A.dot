@@ -7,13 +7,17 @@ digraph Block_Report {
 
     title [label="BLOCK Report\nPartición: 381A", fillcolor=lightblue, fontsize=14];
 
-    block_0 [label="BLOQUE 0 (CARPETA)|{users.txt → inodo 1}", fillcolor=lightyellow];
-    block_1 [label="BLOQUE 1 (CARPETA)|{1, G, root \n → inodo 1428171825}|{, root, root → inodo 842080300}|{3 \n2, G, usu → inodo 1869181537}|{... y 1 más}", fillcolor=lightyellow];
-    block_2 [label="BLOQUE 2 (CARPETA)|{. → inodo 2}|{user → inodo 3}", fillcolor=lightyellow];
-    block_3 [label="BLOQUE 3 (CARPETA)|{home → inodo 2}", fillcolor=lightyellow];
-    block_4 [label="BLOQUE 4 (CARPETA)|{. → inodo 3}|{.. → inodo 2}|{docs → inodo 4}", fillcolor=lightyellow];
-    block_5 [label="BLOQUE 5 (CARPETA)|{. → inodo 4}|{.. → inodo 3}|{usac → inodo 5}", fillcolor=lightyellow];
-    block_6 [label="BLOQUE 6 (CARPETA)|{. → inodo 5}|{.. → inodo 4}", fillcolor=lightyellow];
+    block_0 [label="BLOQUE 0\n(CARPETA)\n[0] . → 0\n[1] .. → 0\n[2] users.txt → 1\n[3] home → 2", fillcolor=lightyellow];
+    block_1 [label="BLOQUE 1\n(ARCHIVO)\n1, G, root \n1, U, root, root, 123 \n2, G, usuarios\n2, U, usuarios", fillcolor=lightyellow];
+    block_2 [label="BLOQUE 2\n(CARPETA)\n[0] . → 2\n[1] .. → 0", fillcolor=lightyellow];
+    block_3 [label="BLOQUE 3\n(CARPETA)\n[0] . → 3\n[1] .. → 0", fillcolor=lightyellow];
+    block_4 [label="BLOQUE 4\n(CARPETA)\n[0] root → 3\n[1] test → 4\n[2] hola → 5\n[3] home → 6", fillcolor=lightyellow];
+    block_5 [label="BLOQUE 5\n(CARPETA)\n[0] . → 4\n[1] .. → 0", fillcolor=lightyellow];
+    block_6 [label="BLOQUE 6\n(CARPETA)\n[0] . → 5\n[1] .. → 0", fillcolor=lightyellow];
+    block_7 [label="BLOQUE 7\n(CARPETA)\n[0] . → 6\n[1] .. → 0\n[2] user → 7", fillcolor=lightyellow];
+    block_8 [label="BLOQUE 8\n(CARPETA)\n[0] . → 7\n[1] .. → 6\n[2] docs → 8", fillcolor=lightyellow];
+    block_9 [label="BLOQUE 9\n(CARPETA)\n[0] . → 8\n[1] .. → 7\n[2] a.txt → 9", fillcolor=lightyellow];
+    block_10 [label="BLOQUE 10\n(ARCHIVO)\n012345678901234", fillcolor=lightyellow];
 
     // Conexiones de la lista enlazada
     title -> block_0;
@@ -23,4 +27,8 @@ digraph Block_Report {
     block_3 -> block_4;
     block_4 -> block_5;
     block_5 -> block_6;
+    block_6 -> block_7;
+    block_7 -> block_8;
+    block_8 -> block_9;
+    block_9 -> block_10;
 }

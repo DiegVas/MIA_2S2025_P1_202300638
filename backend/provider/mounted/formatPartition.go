@@ -132,8 +132,8 @@ func FormatPartition(params *structs.MkfsParams) error {
 		I_atime: getCurrentTimeBytes(),
 		I_ctime: getCurrentTimeBytes(),
 		I_mtime: getCurrentTimeBytes(),
-		I_block: [15]int32{0},
-		I_type:  1, // 1 = directorio
+		I_block: [15]int32{0}, // Caso especial: directorio raíz usa bloque 0
+		I_type:  1,            // 1 = directorio
 		I_perm:  664,
 	}
 
@@ -151,8 +151,8 @@ func FormatPartition(params *structs.MkfsParams) error {
 		I_atime: getCurrentTimeBytes(),
 		I_ctime: getCurrentTimeBytes(),
 		I_mtime: getCurrentTimeBytes(),
-		I_block: [15]int32{1},
-		I_type:  0, // 0 = archivo
+		I_block: [15]int32{1}, // El archivo users.txt está en el bloque lógico 1
+		I_type:  0,            // 0 = archivo
 		I_perm:  664,
 	}
 
@@ -177,7 +177,7 @@ func FormatPartition(params *structs.MkfsParams) error {
 
 	var rootFolderBuffer bytes.Buffer
 	binary.Write(&rootFolderBuffer, binary.LittleEndian, rootFolder)
-	_, err = diskFile.WriteAt(rootFolderBuffer.Bytes(), int64(blockPos))
+	_, err = diskFile.WriteAt(rootFolderBuffer.Bytes(), int64(blockPos)) // Bloque 0
 	if err != nil {
 		return fmt.Errorf("error al escribir el bloque de directorio raíz: %v", err)
 	}
@@ -190,7 +190,7 @@ func FormatPartition(params *structs.MkfsParams) error {
 
 	var usersFileBuffer bytes.Buffer
 	binary.Write(&usersFileBuffer, binary.LittleEndian, usersFileBlock)
-	_, err = diskFile.WriteAt(usersFileBuffer.Bytes(), int64(blockPos+structs.BLOCK_SIZE))
+	_, err = diskFile.WriteAt(usersFileBuffer.Bytes(), int64(blockPos+structs.BLOCK_SIZE)) // Bloque 1
 	if err != nil {
 		return fmt.Errorf("error al escribir el bloque del archivo users.txt: %v", err)
 	}

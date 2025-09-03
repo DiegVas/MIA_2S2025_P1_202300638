@@ -17,9 +17,10 @@ func GenerateReport(params *structs.RepParams) (string, error) {
 		return "", fmt.Errorf("error creando directorio: %v", err)
 	}
 
-	// Generar contenido DOT según el tipo de reporte
+	// Generar contenido según el tipo de reporte
 	var dotContent string
 	var err error
+
 	switch params.Name {
 	case "mbr":
 		dotContent, err = generateMBRReport(params.ID)
@@ -30,15 +31,18 @@ func GenerateReport(params *structs.RepParams) (string, error) {
 	case "block":
 		dotContent, err = generateBlockReport(params.ID)
 	case "bm_inode":
-		dotContent, err = generateBMInodeReport(params.ID)
-	case "bm_block":
-		dotContent, err = generateBMBlockReport(params.ID)
+		// Este es un reporte de texto, no DOT
+		return generateBMInodeTextReport(params)
+	case "bm_bloc":
+		// Este es un reporte de texto, no DOT
+		return generateBMBlockTextReport(params)
 	case "tree":
 		dotContent, err = generateTreeReport(params.ID)
 	case "sb":
 		dotContent, err = generateSuperblockReport(params.ID)
 	case "file":
-		dotContent, err = generateFileReport(params.ID, params.PathFileLS)
+		// Este es un reporte de texto, no DOT
+		return generateFileTextReport(params)
 	case "ls":
 		dotContent, err = generateLSReport(params.ID, params.PathFileLS)
 	default:

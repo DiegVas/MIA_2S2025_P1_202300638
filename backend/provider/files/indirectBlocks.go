@@ -14,7 +14,9 @@ func AddFileToDirectoryWithIndirect(file *os.File, fileName string, fileInodeNum
 
 	// Leer el inodo del directorio
 	inodeBytes := make([]byte, structs.INODE_SIZE)
-	_, err := file.ReadAt(inodeBytes, int64(inodePos+(dirInodeNum*structs.INODE_SIZE)))
+	inodeOffset := int64(inodePos + (dirInodeNum * structs.INODE_SIZE))
+
+	_, err := file.ReadAt(inodeBytes, inodeOffset)
 	if err != nil {
 		return err
 	}
@@ -23,8 +25,13 @@ func AddFileToDirectoryWithIndirect(file *os.File, fileName string, fileInodeNum
 	buffer := bytes.NewReader(inodeBytes)
 	binary.Read(buffer, binary.LittleEndian, &dirInode)
 
+	// CASO ESPECIAL: El directorio raíz (inodo 0) usa el bloque 0 aunque aparezca como 0 en I_block
+	if dirInodeNum == 0 && dirInode.I_block[0] == 0 {
+		// Tratamos el bloque 0 como si ya estuviera asignado al directorio raíz
+	}
+
 	// 1. FASE 1: Buscar en bloques directos (0-11)
-	found, err := addToDirectBlocks(file, fileName, fileInodeNum, &dirInode, blockPos, bmBlockPos, blockCount)
+	found, err := addToDirectBlocks(file, fileName, fileInodeNum, &dirInode, dirInodeNum, blockPos, bmBlockPos, blockCount)
 	if err != nil {
 		return err
 	}
@@ -65,12 +72,18 @@ func AddFileToDirectoryWithIndirect(file *os.File, fileName string, fileInodeNum
 
 // addToDirectBlocks busca espacio en los primeros 12 bloques directos
 func addToDirectBlocks(file *os.File, fileName string, fileInodeNum int32,
-	dirInode *structs.Inode, blockPos, bmBlockPos, blockCount int32) (bool, error) {
+	dirInode *structs.Inode, dirInodeNum, blockPos, bmBlockPos, blockCount int32) (bool, error) {
 
 	for i := 0; i < 12; i++ {
-		if dirInode.I_block[i] != 0 {
+
+		// CASO ESPECIAL: Para el directorio raíz, el slot 0 con bloque 0 es válido
+		isRootSpecialCase := (dirInodeNum == 0 && i == 0 && dirInode.I_block[i] == 0)
+
+		if dirInode.I_block[i] != 0 || isRootSpecialCase {
+			blockNum := dirInode.I_block[i]
+
 			// Verificar si hay espacio en este bloque existente
-			found, err := addToExistingBlock(file, fileName, fileInodeNum, dirInode.I_block[i], blockPos)
+			found, err := addToExistingBlock(file, fileName, fileInodeNum, blockNum, blockPos)
 			if err != nil {
 				continue
 			}
