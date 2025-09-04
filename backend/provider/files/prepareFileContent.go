@@ -26,18 +26,17 @@ func prepareFileContent(params *structs.MkfileParams) (string, int32, error) {
 		}
 		content = string(localContent)
 		size = int32(len(content))
-		fmt.Printf("🎯 DEBUG prepareFileContent: Contenido desde archivo, tamaño: %d\n", size)
+
 	} else if params.SizeSet {
 		// Generar contenido con números del 0 al 9
 		content = generateNumberContent(params.Size)
 		size = params.Size
-		fmt.Printf("🎯 DEBUG prepareFileContent: Contenido generado, tamaño solicitado: %d, tamaño real: %d\n", params.Size, len(content))
-		fmt.Printf("🎯 DEBUG prepareFileContent: Primeros 100 chars: %q\n", content[:min(100, len(content))])
+
 	} else {
 		// Archivo vacío
 		content = ""
 		size = 0
-		fmt.Printf("🎯 DEBUG prepareFileContent: Archivo vacío\n")
+
 	}
 
 	return content, size, nil

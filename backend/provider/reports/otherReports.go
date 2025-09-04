@@ -62,9 +62,18 @@ func generateInodeReport(partitionID string) (string, error) {
 	dot.WriteString(fmt.Sprintf("    title [label=\"%s\", fillcolor=lightblue, fontsize=14];\n\n", titleLabel))
 
 	// Generar nodos para cada inodo utilizado
-	for i, inode := range usedInodes {
-		inodeLabel := generateInodeLabel(i, inode)
-		dot.WriteString(fmt.Sprintf("    inode_%d [label=\"%s\", fillcolor=lightyellow];\n", i, inodeLabel))
+	for i, inodeInfo := range usedInodes {
+		inodeLabel := generateInodeLabel(i, inodeInfo)
+
+		// Determinar color según el tipo de inodo
+		var fillColor string
+		if inodeInfo.Inode.I_type == 1 {
+			fillColor = "lightgreen" // Directorios en verde claro
+		} else {
+			fillColor = "lightcyan" // Archivos en cian claro
+		}
+
+		dot.WriteString(fmt.Sprintf("    inode_%d [label=\"%s\", fillcolor=%s];\n", i, inodeLabel, fillColor))
 	}
 
 	// Generar conexiones para crear la lista enlazada
@@ -265,30 +274,69 @@ func generateInodeLabel(index int, inodeInfo inodeInfo) string {
 		inodeType = "Directorio"
 	}
 
-	// Formatear los bloques (solo mostrar los primeros 5 para no sobrecargar)
-	var blocks []string
-	for i := 0; i < 5 && i < len(inode.I_block); i++ {
+	// Analizar bloques con más detalle
+	var directBlocks []string
+	var indirectBlocks []string
+	var indirectSimple, indirectDoble, indirectTriple int32
+
+	// Bloques directos (0-11)
+	for i := 0; i < 12 && i < len(inode.I_block); i++ {
 		if inode.I_block[i] != 0 {
-			blocks = append(blocks, fmt.Sprintf("%d", inode.I_block[i]))
+			directBlocks = append(directBlocks, fmt.Sprintf("%d", inode.I_block[i]))
 		}
 	}
-	blocksStr := strings.Join(blocks, ", ")
-	if len(inode.I_block) > 5 {
-		blocksStr += "..."
+
+	// Bloques indirectos
+	if len(inode.I_block) > 12 && inode.I_block[12] != 0 {
+		indirectSimple = inode.I_block[12]
+		indirectBlocks = append(indirectBlocks, fmt.Sprintf("IS:%d", indirectSimple))
+	}
+	if len(inode.I_block) > 13 && inode.I_block[13] != 0 {
+		indirectDoble = inode.I_block[13]
+		indirectBlocks = append(indirectBlocks, fmt.Sprintf("ID:%d", indirectDoble))
+	}
+	if len(inode.I_block) > 14 && inode.I_block[14] != 0 {
+		indirectTriple = inode.I_block[14]
+		indirectBlocks = append(indirectBlocks, fmt.Sprintf("IT:%d", indirectTriple))
 	}
 
-	// Generar la etiqueta con toda la información
-	label := fmt.Sprintf("INODO %d|"+
-		"{UID: %d|GID: %d}|"+
-		"{Tamaño: %d bytes|Tipo: %s}|"+
-		"{Permisos: %o|Bloques: [%s]}|"+
+	// Formatear información de bloques
+	var blockInfo string
+	if len(directBlocks) > 0 {
+		if len(directBlocks) > 3 {
+			blockInfo = fmt.Sprintf("Directos: [%s...%d más]",
+				strings.Join(directBlocks[:3], ","), len(directBlocks)-3)
+		} else {
+			blockInfo = fmt.Sprintf("Directos: [%s]", strings.Join(directBlocks, ","))
+		}
+	}
+
+	if len(indirectBlocks) > 0 {
+		if blockInfo != "" {
+			blockInfo += "\\l"
+		}
+		blockInfo += fmt.Sprintf("Indirectos: [%s]", strings.Join(indirectBlocks, ","))
+	}
+
+	if blockInfo == "" {
+		blockInfo = "Sin bloques asignados"
+	}
+
+	// Formatear permisos en octal
+	permStr := fmt.Sprintf("%04o", inode.I_perm)
+
+	// Generar la etiqueta con formato mejorado
+	label := fmt.Sprintf("INODO %d\\n(%s)|"+
+		"{UID: %d | GID: %d}|"+
+		"{Tamaño: %d bytes | Permisos: %s}|"+
+		"{%s}|"+
 		"{A-time: %s}|"+
 		"{C-time: %s}|"+
 		"{M-time: %s}",
-		inodeInfo.Number,
+		inodeInfo.Number, inodeType,
 		inode.I_uid, inode.I_gid,
-		inode.I_size, inodeType,
-		inode.I_perm, blocksStr,
+		inode.I_size, permStr,
+		blockInfo,
 		escapeLabel(atime),
 		escapeLabel(ctime),
 		escapeLabel(mtime))
@@ -740,8 +788,12 @@ func generateIndirectBlockConnections(file *os.File, superblock *structs.Superbl
 // generateInodeTableHTML genera tabla HTML para mostrar información del inodo
 func generateInodeTableHTML(inodeNum int32, inode *structs.Inode) string {
 	inodeType := "Archivo"
+	var bgColor string
 	if inode.I_type == 1 {
 		inodeType = "Directorio"
+		bgColor = "lightgreen"
+	} else {
+		bgColor = "lightcyan"
 	}
 
 	atime := formatInodeTime(inode.I_atime)
@@ -750,7 +802,7 @@ func generateInodeTableHTML(inodeNum int32, inode *structs.Inode) string {
 
 	var table strings.Builder
 	table.WriteString("<table border=\"1\" cellborder=\"1\" cellspacing=\"0\">")
-	table.WriteString(fmt.Sprintf("<tr><td colspan=\"2\" bgcolor=\"lightblue\"><b>INODO %d</b></td></tr>", inodeNum))
+	table.WriteString(fmt.Sprintf("<tr><td colspan=\"2\" bgcolor=\"%s\"><b>INODO %d</b></td></tr>", bgColor, inodeNum))
 	table.WriteString(fmt.Sprintf("<tr><td>Tipo</td><td>%s</td></tr>", inodeType))
 	table.WriteString(fmt.Sprintf("<tr><td>UID</td><td>%d</td></tr>", inode.I_uid))
 	table.WriteString(fmt.Sprintf("<tr><td>GID</td><td>%d</td></tr>", inode.I_gid))
@@ -782,8 +834,22 @@ func generateInodeTableHTML(inodeNum int32, inode *structs.Inode) string {
 // generateBlockTableHTML genera tabla HTML para mostrar información del bloque
 func generateBlockTableHTML(blockNum int32, blockData []byte, blockType string) string {
 	var table strings.Builder
+
+	// Determinar color según el tipo de bloque
+	var bgColor string
+	switch blockType {
+	case "Directorio":
+		bgColor = "lightgreen"
+	case "Archivo":
+		bgColor = "lightcyan"
+	case "Punteros":
+		bgColor = "lightyellow"
+	default:
+		bgColor = "lightgray"
+	}
+
 	table.WriteString("<table border=\"1\" cellborder=\"1\" cellspacing=\"0\">")
-	table.WriteString(fmt.Sprintf("<tr><td colspan=\"2\" bgcolor=\"lightyellow\"><b>BLOQUE %d</b></td></tr>", blockNum))
+	table.WriteString(fmt.Sprintf("<tr><td colspan=\"2\" bgcolor=\"%s\"><b>BLOQUE %d</b></td></tr>", bgColor, blockNum))
 	table.WriteString(fmt.Sprintf("<tr><td>Tipo</td><td>%s</td></tr>", blockType))
 
 	switch blockType {
@@ -848,10 +914,24 @@ func generatePointerBlockTable(table *strings.Builder, blockData []byte) error {
 		return err
 	}
 
+	ptrCount := 0
 	for i, pointer := range pointerBlock.B_pointers {
-		if pointer != 0 {
+		if pointer != 0 && ptrCount < 5 { // Mostrar solo los primeros 5 punteros
 			table.WriteString(fmt.Sprintf("<tr><td port=\"ptr_%d\">Puntero %d</td><td>%d</td></tr>", i, i, pointer))
+			ptrCount++
 		}
+	}
+
+	// Contar total de punteros válidos
+	totalValid := 0
+	for _, pointer := range pointerBlock.B_pointers {
+		if pointer != 0 {
+			totalValid++
+		}
+	}
+
+	if totalValid > 5 {
+		table.WriteString(fmt.Sprintf("<tr><td colspan=\"2\">... y %d punteros más</td></tr>", totalValid-5))
 	}
 
 	return nil
@@ -909,45 +989,20 @@ func readPointerBlockAt(file *os.File, blockNum int32, superblock *structs.Super
 
 // determineBlockTypeForTree determina el tipo de bloque basado en su contenido para el reporte tree
 func determineBlockTypeForTree(blockData []byte) string {
-	// Intentar leer como bloque de directorio
-	var folderBlock structs.FolderBlock
-	buffer := bytes.NewReader(blockData)
-	err := binary.Read(buffer, binary.LittleEndian, &folderBlock)
-	if err == nil {
-		// Verificar si parece ser un directorio válido
-		hasValidEntries := false
-		for _, content := range folderBlock.B_content {
-			entryName := strings.TrimRight(string(content.B_name[:]), "\x00")
-			if entryName != "" && content.B_inodo >= 0 {
-				hasValidEntries = true
-				break
-			}
-		}
-		if hasValidEntries {
-			return "Directorio"
-		}
-	}
+	// Usar la misma lógica mejorada que para el reporte de bloques
+	blockType, _ := determineBlockType(blockData)
 
-	// Intentar leer como bloque de punteros
-	var pointerBlock structs.PointerBlock
-	buffer = bytes.NewReader(blockData)
-	err = binary.Read(buffer, binary.LittleEndian, &pointerBlock)
-	if err == nil {
-		// Verificar si parece ser un bloque de punteros válido
-		hasValidPointers := false
-		for _, pointer := range pointerBlock.B_pointers {
-			if pointer > 0 {
-				hasValidPointers = true
-				break
-			}
-		}
-		if hasValidPointers {
-			return "Punteros"
-		}
+	// Convertir los tipos internos a los nombres usados en el reporte tree
+	switch blockType {
+	case "FOLDER":
+		return "Directorio"
+	case "POINTER":
+		return "Punteros"
+	case "FILE":
+		return "Archivo"
+	default:
+		return "Archivo"
 	}
-
-	// Por defecto, considerar como bloque de archivo
-	return "Archivo"
 }
 
 // generateSuperblockReport genera el reporte del superbloque
@@ -1306,19 +1361,6 @@ func readUsedBlocks(diskPath string, superblock *structs.Superblock, bitmap []by
 				continue // Saltar bloques con error
 			}
 
-			// Debug específico para bloque 26
-			if i == 26 {
-				fmt.Printf("🔍 DEBUG readUsedBlocks: Procesando bloque 26 en posición %d\n", blockPos)
-				fmt.Printf("🔍 DEBUG: Primeros 64 bytes en hex: ")
-				for j := 0; j < 64 && j < len(blockData); j++ {
-					fmt.Printf("%02X ", blockData[j])
-					if (j+1)%16 == 0 {
-						fmt.Printf("\n🔍 DEBUG: ")
-					}
-				}
-				fmt.Printf("\n")
-			}
-
 			// Determinar el tipo de bloque y leer su contenido
 			blockType, content := determineBlockType(blockData)
 
@@ -1331,6 +1373,30 @@ func readUsedBlocks(diskPath string, superblock *structs.Superblock, bitmap []by
 	}
 
 	return usedBlocks, nil
+}
+
+// isValidFilename verifica si un nombre de archivo es válido
+func isValidFilename(name string) bool {
+	if name == "" || len(name) > 12 {
+		return false
+	}
+
+	// Verificar que solo contenga caracteres imprimibles válidos
+	for _, r := range name {
+		if r < 32 || r > 126 {
+			return false
+		}
+	}
+
+	// Verificar que no contenga caracteres problemáticos
+	invalidChars := []string{"/", "\\", ":", "*", "?", "\"", "<", ">", "|", "\x00"}
+	for _, invalid := range invalidChars {
+		if strings.Contains(name, invalid) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // determineBlockType determina el tipo de bloque y extrae su contenido
@@ -1349,64 +1415,64 @@ func determineBlockType(blockData []byte) (string, interface{}) {
 		return "FILE", blockData // Bloque vacío
 	}
 
-	// Intentar leer como PointerBlock PRIMERO
-	var pointerBlock structs.PointerBlock
-	buffer := bytes.NewReader(blockData)
-	err := binary.Read(buffer, binary.LittleEndian, &pointerBlock)
-	if err == nil {
-		// Verificar si tiene punteros válidos
-		validPointerCount := 0
-		invalidPointerCount := 0
-
-		fmt.Printf("🔍 DEBUG determineBlockType: Analizando posible bloque de punteros\n")
-		fmt.Printf("🔍 DEBUG: Punteros leídos: %v\n", pointerBlock.B_pointers[:8])
-
-		for i, pointer := range pointerBlock.B_pointers {
-			if pointer > 0 && pointer < 10000 {
-				validPointerCount++
-				if i < 4 {
-					fmt.Printf("🔍 DEBUG: Puntero %d válido: %d\n", i, pointer)
-				}
-			} else if pointer != 0 {
-				invalidPointerCount++
-				if i < 4 {
-					fmt.Printf("🔍 DEBUG: Puntero %d inválido: %d\n", i, pointer)
-				}
-			}
-		}
-
-		fmt.Printf("🔍 DEBUG: Punteros válidos: %d, inválidos: %d\n", validPointerCount, invalidPointerCount)
-
-		// Criterio: al menos 1 puntero válido y no más de 10 inválidos
-		if validPointerCount >= 1 && invalidPointerCount <= 10 {
-			fmt.Printf("🔍 DEBUG: ✅ Detectado como bloque de PUNTEROS\n")
-			return "POINTER", pointerBlock
-		} else {
-			fmt.Printf("🔍 DEBUG: ❌ No cumple criterio para bloque de punteros\n")
-		}
-	}
-
-	// Intentar leer como FolderBlock
+	// Intentar leer como FolderBlock PRIMERO
 	var folderBlock structs.FolderBlock
-	buffer = bytes.NewReader(blockData)
-	err = binary.Read(buffer, binary.LittleEndian, &folderBlock)
+	buffer := bytes.NewReader(blockData)
+	err := binary.Read(buffer, binary.LittleEndian, &folderBlock)
 	if err == nil {
 		// Verificar si tiene entradas válidas de directorio
 		hasValidDirEntries := false
 		validEntryCount := 0
+		hasDirectoryMarkers := false
 
 		for _, entry := range folderBlock.B_content {
 			name := strings.TrimRight(string(entry.B_name[:]), "\x00")
-			if name != "" && (entry.B_inodo >= 0 && entry.B_inodo < 10000) {
+			// Solo considerar entradas con nombres válidos y inodos razonables
+			if name != "" && entry.B_inodo >= 0 && entry.B_inodo < 1000 {
 				validEntryCount++
-				if name == "." || name == ".." || (len(name) <= 12 && !strings.Contains(name, "\n")) {
+				// Verificar marcadores típicos de directorio
+				if name == "." || name == ".." {
+					hasDirectoryMarkers = true
+					hasValidDirEntries = true
+				} else if len(name) <= 12 && !strings.Contains(name, "\n") &&
+					!strings.Contains(name, "\x00") && isValidFilename(name) {
 					hasValidDirEntries = true
 				}
 			}
 		}
 
-		if hasValidDirEntries && validEntryCount >= 1 {
+		// Un bloque es de directorio si:
+		// 1. Tiene marcadores de directorio (. y ..) OR
+		// 2. Tiene al menos 2 entradas válidas con nombres razonables
+		if (hasDirectoryMarkers && validEntryCount >= 2) ||
+			(hasValidDirEntries && validEntryCount >= 2 && !hasDirectoryMarkers) {
 			return "FOLDER", folderBlock
+		}
+	}
+
+	// Intentar leer como PointerBlock
+	var pointerBlock structs.PointerBlock
+	buffer = bytes.NewReader(blockData)
+	err = binary.Read(buffer, binary.LittleEndian, &pointerBlock)
+	if err == nil {
+		// Verificar si tiene punteros válidos
+		validPointerCount := 0
+		totalNonZeroPointers := 0
+
+		for _, pointer := range pointerBlock.B_pointers {
+			if pointer != 0 {
+				totalNonZeroPointers++
+				if pointer > 0 && pointer < 1000 {
+					validPointerCount++
+				}
+			}
+		}
+
+		// Un bloque es de punteros si:
+		// 1. Tiene al menos 2 punteros válidos OR
+		// 2. Tiene muchos punteros no-cero (indicativo de datos estructurados como punteros)
+		if validPointerCount >= 2 || (totalNonZeroPointers >= 3 && validPointerCount >= 1) {
+			return "POINTER", pointerBlock
 		}
 	}
 
@@ -1654,7 +1720,6 @@ func getDirectoryEntries(file *os.File, dirInode *structs.Inode, superblock *str
 		}
 	}
 
-	fmt.Printf("DEBUG getDirectoryEntries: Total de entradas válidas encontradas: %d\n", len(entries))
 	return entries, nil
 }
 

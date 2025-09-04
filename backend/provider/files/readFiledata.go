@@ -10,14 +10,11 @@ import (
 )
 
 func readFileData(file *os.File, inode structs.Inode, blockPos int32) (string, error) {
-	fmt.Printf("📖 DEBUG readFileData: Leyendo archivo con tamaño %d bytes\n", inode.I_size)
-	fmt.Printf("📖 DEBUG: Bloques del inodo: %v\n", inode.I_block)
 
 	var content strings.Builder
 	totalBytesRead := 0
 
 	// 1. Leer bloques directos (slots 0-11)
-	fmt.Printf("📖 DEBUG: Leyendo bloques directos\n")
 	for i := 0; i < 12 && inode.I_block[i] != 0 && totalBytesRead < int(inode.I_size); i++ {
 		blockNum := inode.I_block[i]
 		bytesRead, err := readDirectBlock(file, blockNum, blockPos, int(inode.I_size)-totalBytesRead, &content)
@@ -25,29 +22,24 @@ func readFileData(file *os.File, inode structs.Inode, blockPos int32) (string, e
 			return "", err
 		}
 		totalBytesRead += bytesRead
-		fmt.Printf("📖 DEBUG: Bloque directo %d -> %d bytes leídos (total: %d)\n", blockNum, bytesRead, totalBytesRead)
 	}
 
 	// 2. Leer bloque indirecto simple (slot 12)
 	if inode.I_block[12] != 0 && totalBytesRead < int(inode.I_size) {
-		fmt.Printf("📖 DEBUG: Leyendo bloque indirecto simple (slot 12)\n")
 		bytesRead, err := readIndirectBlock(file, inode.I_block[12], blockPos, int(inode.I_size)-totalBytesRead, &content)
 		if err != nil {
 			return "", err
 		}
 		totalBytesRead += bytesRead
-		fmt.Printf("📖 DEBUG: Bloque indirecto simple -> %d bytes leídos (total: %d)\n", bytesRead, totalBytesRead)
 	}
 
 	// 3. Leer bloque doblemente indirecto (slot 13)
 	if inode.I_block[13] != 0 && totalBytesRead < int(inode.I_size) {
-		fmt.Printf("📖 DEBUG: Leyendo bloque doblemente indirecto (slot 13)\n")
 		bytesRead, err := readDoubleIndirectBlock(file, inode.I_block[13], blockPos, int(inode.I_size)-totalBytesRead, &content)
 		if err != nil {
 			return "", err
 		}
 		totalBytesRead += bytesRead
-		fmt.Printf("📖 DEBUG: Bloque doblemente indirecto -> %d bytes leídos (total: %d)\n", bytesRead, totalBytesRead)
 	}
 
 	result := content.String()
@@ -57,7 +49,6 @@ func readFileData(file *os.File, inode structs.Inode, blockPos int32) (string, e
 		result = result[:inode.I_size]
 	}
 
-	fmt.Printf("📖 DEBUG readFileData: Lectura completada. %d bytes leídos, tamaño esperado: %d\n", len(result), inode.I_size)
 	return result, nil
 }
 

@@ -30,7 +30,6 @@ func FindFreeBlocks(file *os.File, bmBlockPos, blockCount, blocksNeeded int32) (
 	for i := int32(2); i < blockCount && int32(len(freeBlocks)) < blocksNeeded; i++ {
 		if bitmap[i] == 0 {
 			freeBlocks = append(freeBlocks, i)
-			fmt.Printf("🔍 DEBUG FindFreeBlocks: Bloque libre encontrado: %d\n", i)
 
 			// Marcar inmediatamente como usado en el bitmap para evitar reutilización
 			bitmap[i] = 1
@@ -39,11 +38,8 @@ func FindFreeBlocks(file *os.File, bmBlockPos, blockCount, blocksNeeded int32) (
 				fmt.Printf("❌ ERROR marcando bloque %d como usado: %v\n", i, err)
 				return nil, err
 			}
-			fmt.Printf("🔍 DEBUG: Bloque %d marcado inmediatamente como usado\n", i)
 		}
 	}
-
-	fmt.Printf("🔍 DEBUG FindFreeBlocks: Bloques libres encontrados: %v\n", freeBlocks)
 
 	if int32(len(freeBlocks)) < blocksNeeded {
 		fmt.Printf("❌ ERROR: no hay suficientes bloques libres (encontrados=%d, necesarios=%d)\n", len(freeBlocks), blocksNeeded)
@@ -86,11 +82,6 @@ func WriteContentToInodeBlocks(file *os.File, content string, inode *structs.Ino
 	contentBytes := []byte(content)
 	writtenBytes := 0
 
-	fmt.Printf("📝 DEBUG WriteContentToInodeBlocks: Escribiendo %d bytes\n", len(contentBytes))
-	fmt.Printf("📝 DEBUG: Bloques del inodo: %v\n", inode.I_block)
-
-	// 1. Escribir en bloques directos (slots 0-11)
-	fmt.Printf("📝 DEBUG: Escribiendo en bloques directos\n")
 	for i := 0; i < 12 && inode.I_block[i] != 0 && writtenBytes < len(contentBytes); i++ {
 		blockData := make([]byte, structs.BLOCK_SIZE)
 
@@ -114,9 +105,6 @@ func WriteContentToInodeBlocks(file *os.File, content string, inode *structs.Ino
 
 		blockNum := inode.I_block[i]
 		position := int64(blockPos + (blockNum * structs.BLOCK_SIZE))
-		bytesToWrite := end - start
-
-		fmt.Printf("📝 DEBUG: Bloque directo %d -> Escribiendo %d bytes útiles en posición %d\n", blockNum, bytesToWrite, position)
 
 		_, err := file.WriteAt(blockData, position)
 		if err != nil {
@@ -126,11 +114,9 @@ func WriteContentToInodeBlocks(file *os.File, content string, inode *structs.Ino
 		writtenBytes += structs.FILE_CONTENT_SIZE
 	}
 
-	fmt.Printf("📝 DEBUG: Bytes escritos en bloques directos: %d\n", writtenBytes)
-
 	// 2. Escribir en bloques indirectos simples (slot 12)
 	if inode.I_block[12] != 0 && writtenBytes < len(contentBytes) {
-		fmt.Printf("📝 DEBUG: Escribiendo en bloque indirecto simple (slot 12), bloque: %d\n", inode.I_block[12])
+
 		err := writeToIndirectBlock(file, contentBytes[writtenBytes:], inode.I_block[12], blockPos)
 		if err != nil {
 			return err
@@ -143,25 +129,23 @@ func WriteContentToInodeBlocks(file *os.File, content string, inode *structs.Ino
 		} else {
 			writtenBytes += indirectBytes
 		}
-		fmt.Printf("📝 DEBUG: Bytes escritos después de indirecto simple: %d\n", writtenBytes)
+
 	}
 
 	// 3. Escribir en bloques doblemente indirectos (slot 13)
 	if inode.I_block[13] != 0 && writtenBytes < len(contentBytes) {
-		fmt.Printf("📝 DEBUG: Escribiendo en bloque doblemente indirecto (slot 13), bloque: %d\n", inode.I_block[13])
+
 		err := writeToDoubleIndirectBlock(file, contentBytes[writtenBytes:], inode.I_block[13], blockPos)
 		if err != nil {
 			return err
 		}
 	}
 
-	fmt.Printf("📝 DEBUG: Escritura completada. Total bytes escritos: %d de %d\n", writtenBytes, len(contentBytes))
 	return nil
 }
 
 // writeToIndirectBlock escribe contenido en un bloque indirecto simple
 func writeToIndirectBlock(file *os.File, content []byte, ptrBlockNum int32, blockPos int32) error {
-	fmt.Printf("📝 DEBUG writeToIndirectBlock: Bloque de punteros %d, contenido: %d bytes\n", ptrBlockNum, len(content))
 
 	// Validar que el número de bloque sea válido
 	if ptrBlockNum < 0 {
@@ -172,30 +156,16 @@ func writeToIndirectBlock(file *os.File, content []byte, ptrBlockNum int32, bloc
 	blockBytes := make([]byte, structs.BLOCK_SIZE)
 	ptrPosition := int64(blockPos + (ptrBlockNum * structs.BLOCK_SIZE))
 
-	fmt.Printf("📝 DEBUG: Leyendo bloque de punteros en posición: %d\n", ptrPosition)
-
 	_, err := file.ReadAt(blockBytes, ptrPosition)
 	if err != nil {
 		return fmt.Errorf("error leyendo bloque de punteros %d: %v", ptrBlockNum, err)
 	}
-
-	// Debug: Mostrar los primeros bytes del bloque leído
-	fmt.Printf("📝 DEBUG: Primeros 64 bytes del bloque leído: %v\n", blockBytes[:64])
 
 	var pointerBlock structs.PointerBlock
 	buffer := bytes.NewReader(blockBytes)
 	err = binary.Read(buffer, binary.LittleEndian, &pointerBlock)
 	if err != nil {
 		return fmt.Errorf("error deserializando bloque de punteros: %v", err)
-	}
-
-	fmt.Printf("📝 DEBUG: Punteros leídos: %v\n", pointerBlock.B_pointers)
-
-	// Debug: Verificar si hay punteros inválidos
-	for i, ptr := range pointerBlock.B_pointers {
-		if ptr != 0 && (ptr < 0 || ptr > 100000) {
-			fmt.Printf("📝 DEBUG ERROR: Puntero inválido en posición %d: %d\n", i, ptr)
-		}
 	}
 
 	writtenBytes := 0
@@ -236,14 +206,12 @@ func writeToIndirectBlock(file *os.File, content []byte, ptrBlockNum int32, bloc
 		copy(blockData, buffer.Bytes())
 
 		dataPosition := int64(blockPos + (dataBlockNum * structs.BLOCK_SIZE))
-		bytesToWrite := end - start
+		//bytesToWrite := end - start
 
 		// Validar que la posición no sea negativa
 		if dataPosition < 0 {
 			return fmt.Errorf("posición de escritura negativa: %d para bloque %d", dataPosition, dataBlockNum)
 		}
-
-		fmt.Printf("📝 DEBUG: Escribiendo %d bytes útiles en bloque indirecto %d (posición %d)\n", bytesToWrite, dataBlockNum, dataPosition)
 
 		_, err := file.WriteAt(blockData, dataPosition)
 		if err != nil {
@@ -253,7 +221,6 @@ func writeToIndirectBlock(file *os.File, content []byte, ptrBlockNum int32, bloc
 		writtenBytes += structs.FILE_CONTENT_SIZE
 	}
 
-	fmt.Printf("📝 DEBUG writeToIndirectBlock: Escritura completada, %d bytes escritos\n", writtenBytes)
 	return nil
 } // writeToDoubleIndirectBlock escribe contenido en un bloque doblemente indirecto
 func writeToDoubleIndirectBlock(file *os.File, content []byte, firstLevelBlockNum int32, blockPos int32) error {

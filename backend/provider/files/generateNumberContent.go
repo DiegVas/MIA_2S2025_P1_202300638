@@ -1,13 +1,11 @@
 package files
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 )
 
 func generateNumberContent(size int32) string {
-	fmt.Printf("🔢 DEBUG generateNumberContent: Generando contenido de tamaño %d\n", size)
 
 	if size == 0 {
 		return ""
@@ -20,7 +18,6 @@ func generateNumberContent(size int32) string {
 	}
 
 	result := builder.String()
-	fmt.Printf("🔢 DEBUG generateNumberContent: Generado %d chars, primeros 50: %q\n", len(result), result[:minLen(50, len(result))])
 	return result
 }
 
