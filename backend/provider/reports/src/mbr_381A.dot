@@ -7,10 +7,10 @@ digraph MBR_Report {
 
     title [label="MBR Report\nDisco3.mia", fillcolor=lightblue, fontsize=14];
 
-    mbr_info [label="MBR Information\nDisk Size: 10.00 MB\nCreation Date: September 2, 2025\nTotal Partitions: 1", fillcolor=lightyellow];
+    mbr_info [label="MBR Information\nDisk Size: 20.00 MB\nCreation Date: September 4, 2025\nTotal Partitions: 1", fillcolor=lightyellow];
 
     primary_section [label="PRIMARY PARTITIONS", shape=box, style=filled, fillcolor=lightcyan];
-    primary_0 [label="Particion1\nType: Primary\nStatus: Active\nStart: 5242880\nSize: 5.00 MB\nFit: Worst Fit", fillcolor=lightgreen];
+    primary_0 [label="Particion1\nType: Primary\nStatus: Active\nStart: 10362880\nSize: 9.88 MB\nFit: Worst Fit", fillcolor=lightgreen];
     primary_section -> primary_0;
 
     title -> mbr_info;

@@ -56,11 +56,12 @@ type PointerBlock struct {
 
 // Tamaños de las estructuras en bytes
 const (
-	SUPERBLOCK_SIZE = 88   // Tamaño del superbloque
-	INODE_SIZE      = 128  // Tamaño de un inodo (actualizado para coincidir con struct real)
-	BLOCK_SIZE      = 1024 // Tamaño de un bloque (aumentado de 64 a 1024)
-	FOLDER_SIZE     = 64   // Tamaño de una carpeta
-	POINTER_SIZE    = 64   // Tamaño de un bloque de punteros
+	SUPERBLOCK_SIZE   = 88   // Tamaño del superbloque
+	INODE_SIZE        = 128  // Tamaño de un inodo (actualizado para coincidir con struct real)
+	BLOCK_SIZE        = 1024 // Tamaño de un bloque (aumentado de 64 a 1024)
+	FILE_CONTENT_SIZE = 64   // Tamaño del contenido útil para archivos
+	FOLDER_SIZE       = 64   // Tamaño de una carpeta
+	POINTER_SIZE      = 64   // Tamaño de un bloque de punteros
 )
 
 // Constantes para el sistema de archivos

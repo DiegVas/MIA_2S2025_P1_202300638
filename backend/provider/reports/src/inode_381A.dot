@@ -7,16 +7,16 @@ digraph Inode_Report {
 
     title [label="INODE Report\nPartición: 381A", fillcolor=lightblue, fontsize=14];
 
-    inode_0 [label="INODO 0|{UID: 0|GID: 0}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1230|Bloques: [4...]}|{A-time: 2025-09-02 23:25}|{C-time: 2025-09-02 23:25}|{M-time: 2025-09-02 23:25}", fillcolor=lightyellow];
-    inode_1 [label="INODO 1|{UID: 1|GID: 1}|{Tamaño: 77 bytes|Tipo: Archivo}|{Permisos: 1230|Bloques: [1...]}|{A-time: 2025-09-02 23:25}|{C-time: 2025-09-02 23:25}|{M-time: 2025-09-02 23:25}", fillcolor=lightyellow];
-    inode_2 [label="INODO 2|{UID: 1|GID: 1}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1363|Bloques: [2...]}|{A-time: 2025-09-02 23:25}|{C-time: 2025-09-02 23:25}|{M-time: 2025-09-02 23:25}", fillcolor=lightyellow];
-    inode_3 [label="INODO 3|{UID: 1|GID: 1}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1363|Bloques: [3...]}|{A-time: 2025-09-02 23:25}|{C-time: 2025-09-02 23:25}|{M-time: 2025-09-02 23:25}", fillcolor=lightyellow];
-    inode_4 [label="INODO 4|{UID: 1|GID: 1}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1363|Bloques: [5...]}|{A-time: 2025-09-02 23:25}|{C-time: 2025-09-02 23:25}|{M-time: 2025-09-02 23:25}", fillcolor=lightyellow];
-    inode_5 [label="INODO 5|{UID: 1|GID: 1}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1363|Bloques: [6...]}|{A-time: 2025-09-02 23:25}|{C-time: 2025-09-02 23:25}|{M-time: 2025-09-02 23:25}", fillcolor=lightyellow];
-    inode_6 [label="INODO 6|{UID: 1|GID: 1}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1363|Bloques: [7...]}|{A-time: 2025-09-02 23:25}|{C-time: 2025-09-02 23:25}|{M-time: 2025-09-02 23:25}", fillcolor=lightyellow];
-    inode_7 [label="INODO 7|{UID: 1|GID: 1}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1363|Bloques: [8...]}|{A-time: 2025-09-02 23:25}|{C-time: 2025-09-02 23:25}|{M-time: 2025-09-02 23:25}", fillcolor=lightyellow];
-    inode_8 [label="INODO 8|{UID: 1|GID: 1}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1363|Bloques: [9...]}|{A-time: 2025-09-02 23:25}|{C-time: 2025-09-02 23:25}|{M-time: 2025-09-02 23:25}", fillcolor=lightyellow];
-    inode_9 [label="INODO 9|{UID: 1|GID: 1}|{Tamaño: 15 bytes|Tipo: Archivo}|{Permisos: 1230|Bloques: [10...]}|{A-time: 2025-09-02 23:25}|{C-time: 2025-09-02 23:25}|{M-time: 2025-09-02 23:25}", fillcolor=lightyellow];
+    inode_0 [label="INODO 0|{UID: 0|GID: 0}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1230|Bloques: [4...]}|{A-time: 2025-09-04 00:45}|{C-time: 2025-09-04 00:45}|{M-time: 2025-09-04 00:45}", fillcolor=lightyellow];
+    inode_1 [label="INODO 1|{UID: 1|GID: 1}|{Tamaño: 77 bytes|Tipo: Archivo}|{Permisos: 1230|Bloques: [1...]}|{A-time: 2025-09-04 00:45}|{C-time: 2025-09-04 00:45}|{M-time: 2025-09-04 00:45}", fillcolor=lightyellow];
+    inode_2 [label="INODO 2|{UID: 1|GID: 1}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1363|Bloques: [2...]}|{A-time: 2025-09-04 00:45}|{C-time: 2025-09-04 00:45}|{M-time: 2025-09-04 00:45}", fillcolor=lightyellow];
+    inode_3 [label="INODO 3|{UID: 1|GID: 1}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1363|Bloques: [3...]}|{A-time: 2025-09-04 00:45}|{C-time: 2025-09-04 00:45}|{M-time: 2025-09-04 00:45}", fillcolor=lightyellow];
+    inode_4 [label="INODO 4|{UID: 1|GID: 1}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1363|Bloques: [5...]}|{A-time: 2025-09-04 00:45}|{C-time: 2025-09-04 00:45}|{M-time: 2025-09-04 00:45}", fillcolor=lightyellow];
+    inode_5 [label="INODO 5|{UID: 1|GID: 1}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1363|Bloques: [6...]}|{A-time: 2025-09-04 00:45}|{C-time: 2025-09-04 00:45}|{M-time: 2025-09-04 00:45}", fillcolor=lightyellow];
+    inode_6 [label="INODO 6|{UID: 1|GID: 1}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1363|Bloques: [7...]}|{A-time: 2025-09-04 00:45}|{C-time: 2025-09-04 00:45}|{M-time: 2025-09-04 00:45}", fillcolor=lightyellow];
+    inode_7 [label="INODO 7|{UID: 1|GID: 1}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1363|Bloques: [8...]}|{A-time: 2025-09-04 00:45}|{C-time: 2025-09-04 00:45}|{M-time: 2025-09-04 00:45}", fillcolor=lightyellow];
+    inode_8 [label="INODO 8|{UID: 1|GID: 1}|{Tamaño: 64 bytes|Tipo: Directorio}|{Permisos: 1363|Bloques: [9...]}|{A-time: 2025-09-04 00:45}|{C-time: 2025-09-04 00:45}|{M-time: 2025-09-04 00:45}", fillcolor=lightyellow];
+    inode_9 [label="INODO 9|{UID: 1|GID: 1}|{Tamaño: 1024 bytes|Tipo: Archivo}|{Permisos: 1230|Bloques: [10, 11, 12, 13, 14...]}|{A-time: 2025-09-04 00:45}|{C-time: 2025-09-04 00:45}|{M-time: 2025-09-04 00:45}", fillcolor=lightyellow];
 
     // Conexiones de la lista enlazada
     title -> inode_0;

@@ -6,9 +6,9 @@ digraph DISK_Report {
 
     title [label="DISK Report\nDisco3.mia", fillcolor=lightblue, fontsize=14];
 
-    disk_info [label="Tamaño Total: 10.00 MB|Espacio Libre: 50.00%", fillcolor=lightgray];
+    disk_info [label="Tamaño Total: 20.00 MB|Espacio Libre: 50.59%", fillcolor=lightgray];
 
-    disk_structure [label="Estructura del Disco|{Componente|Tamaño|Porcentaje|Detalles}|{MBR|47 bytes|N/A|Master Boot Record}|{Particion1|5.00 MB|50.00%|Partición Primaria}|{Espacio Libre|5.00 MB|50.00%|Espacio no particionado}", fillcolor=lightyellow];
+    disk_structure [label="Estructura del Disco|{Componente|Tamaño|Porcentaje|Detalles}|{MBR|47 bytes|N/A|Master Boot Record}|{Particion1|9.88 MB|49.41%|Partición Primaria}|{Espacio Libre|10.12 MB|50.59%|Espacio no particionado}", fillcolor=lightyellow];
 
     title -> disk_info;
     disk_info -> disk_structure;
