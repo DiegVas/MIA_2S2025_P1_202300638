@@ -23,8 +23,9 @@ func findFileInDirectory(file *os.File, name string, dirInode structs.Inode, blo
 
 	// Buscar en todos los bloques directos válidos (no solo los necesarios según tamaño)
 	for i := int32(0); i < 12; i++ { // Revisar todos los 12 bloques directos posibles
-		if dirInode.I_block[i] != 0 { // Verificar que el bloque sea válido
-			blockNum := dirInode.I_block[i]
+		blockNum := dirInode.I_block[i]
+		// Nota: El bloque 0 SÍ puede ser válido, solo omitimos si es -1 o similar
+		if blockNum >= 0 { // Verificar que el bloque sea válido (>= 0)
 			fmt.Printf("DEBUG FIND_DIR: Revisando bloque %d (I_block[%d])\n", blockNum, i)
 
 			blockBytes := make([]byte, structs.BLOCK_SIZE)
@@ -51,7 +52,7 @@ func findFileInDirectory(file *os.File, name string, dirInode structs.Inode, blo
 					return content.B_inodo, nil
 				}
 			}
-		} // Cerrar el if dirInode.I_block[i] != 0
+		} // Cerrar el if blockNum >= 0
 	}
 
 	fmt.Printf("DEBUG FIND_DIR: Archivo '%s' no encontrado en ningún bloque\n", name)

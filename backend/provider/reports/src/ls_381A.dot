@@ -3,7 +3,7 @@ digraph LS_Report {
     node [shape=plaintext];
     edge [style=invisible];
     title [label=<<TABLE BORDER="1" CELLBORDER="1" CELLSPACING="0" BGCOLOR="lightblue">
-        <TR><TD COLSPAN="7"><B>Reporte LS - Directorio: /</B></TD></TR>
+        <TR><TD COLSPAN="7"><B>Reporte LS - Directorio: /home/archivos/user/docs</B></TD></TR>
         <TR>
             <TD><B>Permisos</B></TD>
             <TD><B>Owner</B></TD>
@@ -20,7 +20,7 @@ digraph LS_Report {
             <TD>64</TD>
             <TD>N/A</TD>
             <TD>dir</TD>
-            <TD>root</TD>
+            <TD>.</TD>
         </TR>
         <TR>
             <TD>--wxrw--wx</TD>
@@ -29,7 +29,7 @@ digraph LS_Report {
             <TD>64</TD>
             <TD>N/A</TD>
             <TD>dir</TD>
-            <TD>test</TD>
+            <TD>..</TD>
         </TR>
         <TR>
             <TD>--wxrw--wx</TD>
@@ -38,16 +38,34 @@ digraph LS_Report {
             <TD>64</TD>
             <TD>N/A</TD>
             <TD>dir</TD>
-            <TD>hola</TD>
+            <TD>usac</TD>
         </TR>
         <TR>
-            <TD>--wxrw--wx</TD>
+            <TD>--w--wx---</TD>
             <TD>1</TD>
             <TD>1</TD>
-            <TD>64</TD>
+            <TD>75</TD>
             <TD>N/A</TD>
-            <TD>dir</TD>
-            <TD>home</TD>
+            <TD>file</TD>
+            <TD>Tarea.txt</TD>
+        </TR>
+        <TR>
+            <TD>--w--wx---</TD>
+            <TD>1</TD>
+            <TD>1</TD>
+            <TD>768</TD>
+            <TD>N/A</TD>
+            <TD>file</TD>
+            <TD>Tarea2.txt</TD>
+        </TR>
+        <TR>
+            <TD>--w--wx---</TD>
+            <TD>1</TD>
+            <TD>1</TD>
+            <TD>6</TD>
+            <TD>N/A</TD>
+            <TD>file</TD>
+            <TD>Tarea3.txt</TD>
         </TR>
     </TABLE>>];
 }

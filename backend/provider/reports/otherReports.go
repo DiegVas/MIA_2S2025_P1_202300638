@@ -58,7 +58,7 @@ func generateInodeReport(partitionID string) (string, error) {
 	dot.WriteString("    edge [fontname=\"Arial\"];\n\n")
 
 	// Título del reporte
-	titleLabel := fmt.Sprintf("INODE Report\\nPartición: %s", escapeLabel(partitionID))
+	titleLabel := fmt.Sprintf("INODE Report\\nParticion: %s", escapeLabel(partitionID))
 	dot.WriteString(fmt.Sprintf("    title [label=\"%s\", fillcolor=lightblue, fontsize=14];\n\n", titleLabel))
 
 	// Generar nodos para cada inodo utilizado
@@ -123,9 +123,9 @@ func readSuperblock(diskPath, partitionID string) (*structs.Superblock, error) {
 		return nil, fmt.Errorf("partición '%s' no encontrada en el disco", mountedPartition.Name)
 	}
 
-	// Verificar que la partición tenga un tamaño válido
+	// Verificar que la particion tenga un tamano valido
 	if targetPartition.Part_size <= 0 {
-		return nil, fmt.Errorf("partición '%s' tiene un tamaño inválido: %d", mountedPartition.Name, targetPartition.Part_size)
+		return nil, fmt.Errorf("particion '%s' tiene un tamano invalido: %d", mountedPartition.Name, targetPartition.Part_size)
 	}
 
 	// Abrir el archivo del disco
@@ -135,7 +135,7 @@ func readSuperblock(diskPath, partitionID string) (*structs.Superblock, error) {
 	}
 	defer file.Close()
 
-	// Verificar el tamaño del archivo
+	// Verificar el tamano del archivo
 	fileInfo, err := file.Stat()
 	if err != nil {
 		return nil, fmt.Errorf("error obteniendo información del archivo: %v", err)
@@ -328,7 +328,7 @@ func generateInodeLabel(index int, inodeInfo inodeInfo) string {
 	// Generar la etiqueta con formato mejorado
 	label := fmt.Sprintf("INODO %d\\n(%s)|"+
 		"{UID: %d | GID: %d}|"+
-		"{Tamaño: %d bytes | Permisos: %s}|"+
+		"{Tamano: %d bytes | Permisos: %s}|"+
 		"{%s}|"+
 		"{A-time: %s}|"+
 		"{C-time: %s}|"+
@@ -418,7 +418,7 @@ func generateBlockReport(partitionID string) (string, error) {
 	dot.WriteString("    edge [fontname=\"Arial\"];\n\n")
 
 	// Título del reporte
-	titleLabel := fmt.Sprintf("BLOCK Report\\nPartición: %s", escapeLabel(partitionID))
+	titleLabel := fmt.Sprintf("BLOCK Report\\nParticion: %s", escapeLabel(partitionID))
 	dot.WriteString(fmt.Sprintf("    title [label=\"%s\", fillcolor=lightblue, fontsize=14];\n\n", titleLabel))
 
 	// Generar nodos para cada bloque utilizado
@@ -471,7 +471,7 @@ func generateBMInodeTextReport(params *structs.RepParams) (string, error) {
 	var content strings.Builder
 	content.WriteString("REPORTE DE BITMAP DE INODOS\n")
 	content.WriteString("===========================\n")
-	content.WriteString(fmt.Sprintf("Partición: %s\n", params.ID))
+	content.WriteString(fmt.Sprintf("Particion: %s\n", params.ID))
 	content.WriteString(fmt.Sprintf("Total de inodos: %d\n", superblock.S_inodes_count))
 	content.WriteString(fmt.Sprintf("Inodos libres: %d\n", superblock.S_free_inodes_count))
 	content.WriteString(fmt.Sprintf("Inodos utilizados: %d\n\n", superblock.S_inodes_count-superblock.S_free_inodes_count))
@@ -612,7 +612,7 @@ func generateTreeReport(partitionID string) (string, error) {
 	dot.WriteString("    edge [fontname=\"Arial\"];\n\n")
 
 	// Título del reporte
-	dot.WriteString(fmt.Sprintf("    title [label=\"Reporte Árbol del Sistema de Archivos\\nPartición: %s\", shape=box, style=filled, fillcolor=lightblue];\n\n", partitionID))
+	dot.WriteString(fmt.Sprintf("    title [label=\"Reporte Arbol del Sistema de Archivos\\nParticion: %s\", shape=box, style=filled, fillcolor=lightblue];\n\n", partitionID))
 
 	// Generar el árbol completo del sistema de archivos
 	err = generateFileSystemTree(file, superblock, &dot)
@@ -713,17 +713,22 @@ func generateUsedInodes(file *os.File, superblock *structs.Superblock, bitmap []
 
 // generateUsedBlocks genera los nodos de bloques utilizados
 func generateUsedBlocks(file *os.File, superblock *structs.Superblock, bitmap []byte, dot *strings.Builder, nodeCounter *int) error {
+	fmt.Printf("DEBUG TREE: Generando bloques utilizados...\n")
 	// Recorrer el bitmap para encontrar bloques utilizados
 	for i := int32(0); i < superblock.S_blocks_count; i++ {
 		if i < int32(len(bitmap)) && bitmap[i] == 1 {
+			fmt.Printf("DEBUG TREE: Procesando bloque %d\n", i)
 			// Este bloque está en uso, leerlo
 			blockData, blockType, err := readBlockAt(file, i, superblock)
 			if err != nil {
+				fmt.Printf("DEBUG TREE: Error leyendo bloque %d: %v\n", i, err)
 				continue // Saltar este bloque si hay error
 			}
+			fmt.Printf("DEBUG TREE: Bloque %d, tipo: %s\n", i, blockType)
 
 			// Generar tabla HTML para el bloque
 			blockTable := generateBlockTableHTML(i, blockData, blockType)
+			fmt.Printf("DEBUG TREE: Tabla HTML generada para bloque %d\n", i)
 
 			dot.WriteString(fmt.Sprintf("    block_%d [label=<%s>];\n", i, blockTable))
 			(*nodeCounter)++
@@ -747,12 +752,14 @@ func generateInodeBlockConnections(file *os.File, superblock *structs.Superblock
 			// Conectar con bloques directos
 			for j := 0; j < 12; j++ {
 				if inode.I_block[j] != 0 && inode.I_block[j] < int32(len(blockBitmap)) && blockBitmap[inode.I_block[j]] == 1 {
+					fmt.Printf("DEBUG TREE: Generando conexion directa: inode_%d:block_%d -> block_%d\n", i, j, inode.I_block[j])
 					dot.WriteString(fmt.Sprintf("    inode_%d:block_%d -> block_%d;\n", i, j, inode.I_block[j]))
 				}
 			}
 
 			// Conectar con bloque de punteros indirectos (bloque 12)
 			if inode.I_block[12] != 0 && inode.I_block[12] < int32(len(blockBitmap)) && blockBitmap[inode.I_block[12]] == 1 {
+				fmt.Printf("DEBUG TREE: Generando conexion indirecta simple: inode_%d:block_12 -> block_%d\n", i, inode.I_block[12])
 				dot.WriteString(fmt.Sprintf("    inode_%d:block_12 -> block_%d;\n", i, inode.I_block[12]))
 
 				// Leer bloque de punteros y conectar con bloques apuntados
@@ -777,8 +784,12 @@ func generateIndirectBlockConnections(file *os.File, superblock *structs.Superbl
 
 	// Conectar con cada bloque apuntado
 	for i, pointer := range pointerBlock.B_pointers {
-		if pointer != 0 && pointer < int32(len(blockBitmap)) && blockBitmap[pointer] == 1 {
+		// Validar que el puntero esté en un rango razonable y esté marcado como usado
+		if pointer != 0 && pointer > 0 && pointer < 10000 && pointer < int32(len(blockBitmap)) && blockBitmap[pointer] == 1 {
+			fmt.Printf("DEBUG TREE: Generando conexion indirecta: block_%d:ptr_%d -> block_%d\n", blockNum, i, pointer)
 			dot.WriteString(fmt.Sprintf("    block_%d:ptr_%d -> block_%d;\n", blockNum, i, pointer))
+		} else if pointer != 0 {
+			fmt.Printf("DEBUG TREE: Puntero invalido omitido: %d (rango: 0-%d, bitmap len: %d)\n", pointer, 10000, len(blockBitmap))
 		}
 	}
 
@@ -806,7 +817,7 @@ func generateInodeTableHTML(inodeNum int32, inode *structs.Inode) string {
 	table.WriteString(fmt.Sprintf("<tr><td>Tipo</td><td>%s</td></tr>", inodeType))
 	table.WriteString(fmt.Sprintf("<tr><td>UID</td><td>%d</td></tr>", inode.I_uid))
 	table.WriteString(fmt.Sprintf("<tr><td>GID</td><td>%d</td></tr>", inode.I_gid))
-	table.WriteString(fmt.Sprintf("<tr><td>Tamaño</td><td>%d bytes</td></tr>", inode.I_size))
+	table.WriteString(fmt.Sprintf("<tr><td>Tamano</td><td>%d bytes</td></tr>", inode.I_size))
 	table.WriteString(fmt.Sprintf("<tr><td>Permisos</td><td>%o</td></tr>", inode.I_perm))
 	table.WriteString(fmt.Sprintf("<tr><td>A-time</td><td>%s</td></tr>", atime))
 	table.WriteString(fmt.Sprintf("<tr><td>C-time</td><td>%s</td></tr>", ctime))
@@ -835,6 +846,8 @@ func generateInodeTableHTML(inodeNum int32, inode *structs.Inode) string {
 func generateBlockTableHTML(blockNum int32, blockData []byte, blockType string) string {
 	var table strings.Builder
 
+	fmt.Printf("DEBUG TREE: Generando tabla HTML para bloque %d, tipo: %s\n", blockNum, blockType)
+
 	// Determinar color según el tipo de bloque
 	var bgColor string
 	switch blockType {
@@ -856,6 +869,7 @@ func generateBlockTableHTML(blockNum int32, blockData []byte, blockType string) 
 	case "Directorio":
 		err := generateDirectoryBlockTable(&table, blockData)
 		if err != nil {
+			fmt.Printf("DEBUG TREE: Error generando tabla de directorio para bloque %d: %v\n", blockNum, err)
 			table.WriteString(fmt.Sprintf("<tr><td>Error</td><td>%s</td></tr>", err.Error()))
 		}
 	case "Archivo":
@@ -863,6 +877,7 @@ func generateBlockTableHTML(blockNum int32, blockData []byte, blockType string) 
 	case "Punteros":
 		err := generatePointerBlockTable(&table, blockData)
 		if err != nil {
+			fmt.Printf("DEBUG TREE: Error generando tabla de punteros para bloque %d: %v\n", blockNum, err)
 			table.WriteString(fmt.Sprintf("<tr><td>Error</td><td>%s</td></tr>", err.Error()))
 		}
 	default:
@@ -870,7 +885,16 @@ func generateBlockTableHTML(blockNum int32, blockData []byte, blockType string) 
 	}
 
 	table.WriteString("</table>")
-	return table.String()
+	result := table.String()
+	fmt.Printf("DEBUG TREE: Tabla HTML generada para bloque %d (primeros 100 chars): %q\n", blockNum,
+		func() string {
+			if len(result) > 100 {
+				return result[:100] + "..."
+			}
+			return result
+		}())
+
+	return result
 }
 
 // generateDirectoryBlockTable genera la tabla para un bloque de directorio
@@ -879,12 +903,17 @@ func generateDirectoryBlockTable(table *strings.Builder, blockData []byte) error
 	buffer := bytes.NewReader(blockData)
 	err := binary.Read(buffer, binary.LittleEndian, &folderBlock)
 	if err != nil {
+		fmt.Printf("DEBUG TREE: Error leyendo bloque de directorio: %v\n", err)
 		return err
 	}
 
 	for i, content := range folderBlock.B_content {
 		entryName := strings.TrimRight(string(content.B_name[:]), "\x00")
 		if entryName != "" {
+			fmt.Printf("DEBUG TREE: Entrada %d: %q -> inodo %d\n", i, entryName, content.B_inodo)
+			// Escapar caracteres especiales en nombres de archivos/directorios
+			entryName = escapeHTMLForDot(entryName)
+			fmt.Printf("DEBUG TREE: Entrada %d escapada: %q\n", i, entryName)
 			table.WriteString(fmt.Sprintf("<tr><td port=\"entry_%d\">Entrada %d</td><td>%s (Inodo: %d)</td></tr>", i, i, entryName, content.B_inodo))
 		}
 	}
@@ -899,24 +928,71 @@ func generateFileBlockTable(table *strings.Builder, blockData []byte) {
 	binary.Read(buffer, binary.LittleEndian, &fileBlock)
 
 	content := strings.TrimRight(string(fileBlock.B_content[:]), "\x00")
+	fmt.Printf("DEBUG TREE: Contenido del bloque de archivo (original): %q\n", content)
+
 	if len(content) > 50 {
 		content = content[:50] + "..."
 	}
+
+	// Si el contenido está vacío, mostrar mensaje
+	if content == "" {
+		content = "[vacio]"
+		fmt.Printf("DEBUG TREE: Contenido vacío, usando placeholder\n")
+	}
+
+	// Escapar caracteres especiales para HTML en DOT
+	content = escapeHTMLForDot(content)
+	fmt.Printf("DEBUG TREE: Contenido del bloque de archivo (escapado): %q\n", content)
 	table.WriteString(fmt.Sprintf("<tr><td>Contenido</td><td>%s</td></tr>", content))
 }
 
-// generatePointerBlockTable genera la tabla para un bloque de punteros
+// escapeHTMLForDot escapa caracteres especiales para uso en HTML dentro de archivos DOT
+func escapeHTMLForDot(s string) string {
+	original := s
+	s = strings.ReplaceAll(s, "&", "&amp;")
+	s = strings.ReplaceAll(s, "<", "&lt;")
+	s = strings.ReplaceAll(s, ">", "&gt;")
+	s = strings.ReplaceAll(s, "\"", "&quot;")
+	s = strings.ReplaceAll(s, "'", "&#39;")
+	s = strings.ReplaceAll(s, "\n", "\\n")
+	s = strings.ReplaceAll(s, "\r", "\\r")
+	s = strings.ReplaceAll(s, "\t", "\\t")
+
+	// Escapar caracteres nulos y otros caracteres no imprimibles
+	var result strings.Builder
+	for _, char := range s {
+		if char == 0 {
+			result.WriteString("\\0")
+		} else if char < 32 && char != 9 && char != 10 && char != 13 { // Escapar caracteres de control excepto tab, LF, CR
+			result.WriteString(fmt.Sprintf("\\x%02x", char))
+		} else {
+			result.WriteRune(char)
+		}
+	}
+	s = result.String()
+
+	if original != s {
+		fmt.Printf("DEBUG TREE: Escape HTML - Original: %q -> Escapado: %q\n", original, s)
+	}
+
+	return s
+} // generatePointerBlockTable genera la tabla para un bloque de punteros
 func generatePointerBlockTable(table *strings.Builder, blockData []byte) error {
 	var pointerBlock structs.PointerBlock
 	buffer := bytes.NewReader(blockData)
 	err := binary.Read(buffer, binary.LittleEndian, &pointerBlock)
 	if err != nil {
+		fmt.Printf("DEBUG TREE: Error leyendo bloque de punteros: %v\n", err)
 		return err
 	}
 
+	fmt.Printf("DEBUG TREE: Procesando bloque de punteros con %d punteros\n", len(pointerBlock.B_pointers))
+
 	ptrCount := 0
 	for i, pointer := range pointerBlock.B_pointers {
-		if pointer != 0 && ptrCount < 5 { // Mostrar solo los primeros 5 punteros
+		fmt.Printf("DEBUG TREE: Puntero %d = %d\n", i, pointer)
+		// Validar que el puntero esté en un rango razonable (por ejemplo, < 10000)
+		if pointer != 0 && pointer < 10000 && ptrCount < 5 { // Mostrar solo los primeros 5 punteros válidos
 			table.WriteString(fmt.Sprintf("<tr><td port=\"ptr_%d\">Puntero %d</td><td>%d</td></tr>", i, i, pointer))
 			ptrCount++
 		}
@@ -925,14 +1001,16 @@ func generatePointerBlockTable(table *strings.Builder, blockData []byte) error {
 	// Contar total de punteros válidos
 	totalValid := 0
 	for _, pointer := range pointerBlock.B_pointers {
-		if pointer != 0 {
+		if pointer != 0 && pointer < 10000 { // Solo contar punteros válidos
 			totalValid++
 		}
 	}
 
 	if totalValid > 5 {
-		table.WriteString(fmt.Sprintf("<tr><td colspan=\"2\">... y %d punteros más</td></tr>", totalValid-5))
+		table.WriteString(fmt.Sprintf("<tr><td colspan=\"2\">... y %d punteros mas</td></tr>", totalValid-5))
 	}
+
+	fmt.Printf("DEBUG TREE: Total de punteros validos: %d, mostrados: %d\n", totalValid, ptrCount)
 
 	return nil
 }
@@ -1031,7 +1109,7 @@ func generateSuperblockReport(partitionID string) (string, error) {
 	dot.WriteString("    graph [fontname=\"Arial\"];\n\n")
 
 	// Título del reporte
-	dot.WriteString(fmt.Sprintf("    title [label=\"SuperBloque Partición %s\\nen disco %s\", shape=box, style=filled, fillcolor=lightblue];\n\n",
+	dot.WriteString(fmt.Sprintf("    title [label=\"SuperBloque Particion %s\\nen disco %s\", shape=box, style=filled, fillcolor=lightblue];\n\n",
 		partitionID, mountedPartition.Path))
 
 	// Crear la tabla del superbloque
@@ -1076,9 +1154,9 @@ func generateSuperblockReport(partitionID string) (string, error) {
 	}
 	dot.WriteString(fmt.Sprintf("Número mágico|%s\\l|", magicValid))
 
-	// Tamaños
-	dot.WriteString(fmt.Sprintf("Tamaño del inodo|%d bytes\\l|", superblock.S_inode_size))
-	dot.WriteString(fmt.Sprintf("Tamaño del bloque|%d bytes\\l|", superblock.S_block_size))
+	// Tamanos
+	dot.WriteString(fmt.Sprintf("Tamano del inodo|%d bytes\\l|", superblock.S_inode_size))
+	dot.WriteString(fmt.Sprintf("Tamano del bloque|%d bytes\\l|", superblock.S_block_size))
 
 	// Posiciones de inicio
 	dot.WriteString(fmt.Sprintf("Primer inodo libre|%d\\l|", superblock.S_first_ino))
@@ -1132,7 +1210,7 @@ func generateFileTextReport(params *structs.RepParams) (string, error) {
 	content.WriteString("==================\n")
 	content.WriteString(fmt.Sprintf("Partición: %s\n", params.ID))
 	content.WriteString(fmt.Sprintf("Archivo: %s\n", params.PathFileLS))
-	content.WriteString(fmt.Sprintf("Tamaño: %d bytes\n", len(fileContent)))
+	content.WriteString(fmt.Sprintf("Tamano: %d bytes\n", len(fileContent)))
 
 	// Agregar fecha actual como fecha del reporte
 	currentTime := time.Now()
@@ -1175,6 +1253,10 @@ func generateLSReport(partitionID, dirPath string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error leyendo superbloque: %v", err)
 	}
+
+	// Debug: Imprimir información del superbloque
+	fmt.Printf("DEBUG LS SUPERBLOCK: S_inode_start=%d, S_block_start=%d, S_inodes_count=%d\n",
+		superblock.S_inode_start, superblock.S_block_start, superblock.S_inodes_count)
 
 	// Abrir el archivo del disco
 	file, err := os.Open(mountedPartition.Path)
@@ -1592,6 +1674,8 @@ type DirectoryEntry struct {
 
 // findInodeByPath encuentra el número de inodo de un archivo/directorio dado su path
 func findInodeByPath(file *os.File, path string, superblock *structs.Superblock) (int32, error) {
+	fmt.Printf("DEBUG LS findInodeByPath: Buscando path '%s'\n", path)
+
 	if path == "/" {
 		return 0, nil // El inodo raíz es siempre 0
 	}
@@ -1604,6 +1688,8 @@ func findInodeByPath(file *os.File, path string, superblock *structs.Superblock)
 		if component == "" {
 			continue
 		}
+
+		fmt.Printf("DEBUG LS findInodeByPath: Procesando componente '%s' en inodo %d\n", component, currentInodeNum)
 
 		// Leer el inodo actual
 		currentInode, err := readInodeAt(file, currentInodeNum, superblock.S_inode_start)
@@ -1618,12 +1704,28 @@ func findInodeByPath(file *os.File, path string, superblock *structs.Superblock)
 
 		// Buscar el componente en el directorio actual
 		found := false
+		fmt.Printf("DEBUG LS findInodeByPath: Inodo %d tiene bloques: %v\n", currentInodeNum, currentInode.I_block[:5])
+
 		for i := 0; i < 12; i++ { // Bloques directos
-			if currentInode.I_block[i] != 0 {
+			if currentInode.I_block[i] != 0 { // Verificar que el bloque sea válido
+				fmt.Printf("DEBUG LS findInodeByPath: Revisando bloque %d (I_block[%d])\n", currentInode.I_block[i], i)
+
 				blockBytes := make([]byte, structs.BLOCK_SIZE)
-				blockPos := superblock.S_block_start + (currentInode.I_block[i] * structs.BLOCK_SIZE)
+				// Calcular la posición correcta del bloque dentro de la partición
+				var blockPos int32
+				if superblock.S_block_start == 0 {
+					// Calcular: inode_start + (inodes_count * inode_size)
+					blockPos = superblock.S_inode_start + (superblock.S_inodes_count * structs.INODE_SIZE)
+					blockPos += (currentInode.I_block[i] * structs.BLOCK_SIZE)
+				} else {
+					blockPos = superblock.S_block_start + (currentInode.I_block[i] * structs.BLOCK_SIZE)
+				}
+
+				fmt.Printf("DEBUG LS findInodeByPath: Calculando blockPos para bloque %d: %d\n", currentInode.I_block[i], blockPos)
+
 				_, err = file.ReadAt(blockBytes, int64(blockPos))
 				if err != nil {
+					fmt.Printf("DEBUG LS findInodeByPath: Error leyendo bloque %d: %v\n", currentInode.I_block[i], err)
 					continue
 				}
 
@@ -1633,9 +1735,13 @@ func findInodeByPath(file *os.File, path string, superblock *structs.Superblock)
 
 				for _, content := range folderBlock.B_content {
 					entryName := strings.TrimRight(string(content.B_name[:]), "\x00")
+					if entryName != "" {
+						fmt.Printf("DEBUG LS findInodeByPath: Entrada encontrada: '%s' -> inodo %d\n", entryName, content.B_inodo)
+					}
 					if entryName == component {
 						currentInodeNum = content.B_inodo
 						found = true
+						fmt.Printf("DEBUG LS findInodeByPath: ¡Componente '%s' encontrado! Inodo: %d\n", component, content.B_inodo)
 						break
 					}
 				}
