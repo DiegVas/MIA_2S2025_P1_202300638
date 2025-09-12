@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"encoding/json"
 	"fmt"
 	"main/Analyzer"
 	"main/provider/groups"
@@ -81,5 +80,4 @@ func handleRmgrp(w http.ResponseWriter, command string) {
 	response := utils.CreateResponse(confirmationMessage, params, "system")
 
 	utils.SendJSONResponse(w, response, http.StatusOK)
-	json.NewEncoder(w).Encode(response)
 }

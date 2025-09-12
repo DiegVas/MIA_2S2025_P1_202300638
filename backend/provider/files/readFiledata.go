@@ -10,21 +10,19 @@ import (
 )
 
 func readFileData(file *os.File, inode structs.Inode, blockPos int32) (string, error) {
-
 	var content strings.Builder
 	totalBytesRead := 0
 
 	// 1. Leer bloques directos (slots 0-11)
 	for i := 0; i < 12 && inode.I_block[i] != 0 && totalBytesRead < int(inode.I_size); i++ {
 		blockNum := inode.I_block[i]
+
 		bytesRead, err := readDirectBlock(file, blockNum, blockPos, int(inode.I_size)-totalBytesRead, &content)
 		if err != nil {
 			return "", err
 		}
 		totalBytesRead += bytesRead
-	}
-
-	// 2. Leer bloque indirecto simple (slot 12)
+	} // 2. Leer bloque indirecto simple (slot 12)
 	if inode.I_block[12] != 0 && totalBytesRead < int(inode.I_size) {
 		bytesRead, err := readIndirectBlock(file, inode.I_block[12], blockPos, int(inode.I_size)-totalBytesRead, &content)
 		if err != nil {
@@ -72,9 +70,7 @@ func readDirectBlock(file *os.File, blockNum int32, blockPos int32, maxBytes int
 	content.Write(blockContent)
 
 	return bytesToRead, nil
-}
-
-// readIndirectBlock lee un bloque indirecto simple
+} // readIndirectBlock lee un bloque indirecto simple
 func readIndirectBlock(file *os.File, ptrBlockNum int32, blockPos int32, maxBytes int, content *strings.Builder) (int, error) {
 	// Leer el bloque de punteros
 	blockBytes := make([]byte, structs.BLOCK_SIZE)

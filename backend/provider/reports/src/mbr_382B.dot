@@ -1,0 +1,22 @@
+digraph MBR_Report {
+    rankdir=TB;
+    node [shape=box, style=filled];
+    graph [fontname="Arial", fontsize=12];
+    node [fontname="Arial", fontsize=10];
+    edge [fontname="Arial"];
+
+    title [label="MBR Report\nDisco3.mia", fillcolor=lightblue, fontsize=14];
+
+    mbr_info [label="MBR Information\nDisk Size: 13.00 MB\nCreation Date: September 10, 2025\nTotal Partitions: 3", fillcolor=lightyellow];
+
+    primary_section [label="PRIMARY PARTITIONS", shape=box, style=filled, fillcolor=lightcyan];
+    primary_0 [label="Part31\nType: Primary\nStatus: Active\nStart: 4194304\nSize: 4.00 MB\nFit: Worst Fit", fillcolor=lightgreen];
+    primary_section -> primary_0;
+    primary_1 [label="Part32\nType: Primary\nStatus: Active\nStart: 8388608\nSize: 4.00 MB\nFit: Worst Fit", fillcolor=lightgreen];
+    primary_section -> primary_1;
+    primary_2 [label="Part33\nType: Primary\nStatus: Active\nStart: 12582912\nSize: 1.00 MB\nFit: Worst Fit", fillcolor=lightgreen];
+    primary_section -> primary_2;
+
+    title -> mbr_info;
+    mbr_info -> primary_section;
+}

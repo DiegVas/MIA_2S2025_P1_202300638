@@ -1,0 +1,34 @@
+digraph MBR_Report {
+    rankdir=TB;
+    node [shape=box, style=filled];
+    graph [fontname="Arial", fontsize=12];
+    node [fontname="Arial", fontsize=10];
+    edge [fontname="Arial"];
+
+    title [label="MBR Report\nDisco5.mia", fillcolor=lightblue, fontsize=14];
+
+    mbr_info [label="MBR Information\nDisk Size: 20.00 MB\nCreation Date: September 10, 2025\nTotal Partitions: 2", fillcolor=lightyellow];
+
+    primary_section [label="PRIMARY PARTITIONS", shape=box, style=filled, fillcolor=lightcyan];
+    primary_0 [label="Part53\nType: Primary\nStatus: Active\nStart: 10485760\nSize: 5.00 MB\nFit: Best Fit", fillcolor=lightgreen];
+    primary_section -> primary_0;
+
+    extended_section [label="EXTENDED PARTITIONS", shape=box, style=filled, fillcolor=lightyellow];
+    extended_0 [label="Part51\nType: Extended\nStatus: Active\nStart: 5242880\nSize: 5.00 MB\nFit: Best Fit", fillcolor=orange];
+    extended_section -> extended_0;
+
+    logical_section [label="LOGICAL PARTITIONS", shape=box, style=filled, fillcolor=lightpink];
+    logical_0 [label="Part52\nType: Logical\nStatus: Active\nStart: 5242910\nSize: 1.00 MB\nFit: Best Fit", fillcolor=lightcoral];
+    logical_section -> logical_0;
+    logical_1 [label="Part54\nType: Logical\nStatus: Active\nStart: 6291516\nSize: 1.00 MB\nFit: Best Fit", fillcolor=lightcoral];
+    logical_section -> logical_1;
+    logical_2 [label="Part55\nType: Logical\nStatus: Active\nStart: 7340122\nSize: 1.00 MB\nFit: Best Fit", fillcolor=lightcoral];
+    logical_section -> logical_2;
+    logical_3 [label="Part56\nType: Logical\nStatus: Active\nStart: 8388728\nSize: 1.00 MB\nFit: Best Fit", fillcolor=lightcoral];
+    logical_section -> logical_3;
+
+    title -> mbr_info;
+    mbr_info -> primary_section;
+    mbr_info -> extended_section;
+    mbr_info -> logical_section;
+}

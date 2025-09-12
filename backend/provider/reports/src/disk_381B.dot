@@ -1,0 +1,15 @@
+digraph DISK_Report {
+    rankdir=TB;
+    node [shape=record, style=filled];
+    graph [fontname="Arial", fontsize=12];
+    node [fontname="Arial", fontsize=10];
+
+    title [label="DISK Report\nDisco3.mia", fillcolor=lightblue, fontsize=14];
+
+    disk_info [label="Tamaño Total: 13.00 MB|Espacio Libre: 30.77%", fillcolor=lightgray];
+
+    disk_structure [label="Estructura del Disco|{Componente|Tamaño|Porcentaje|Detalles}|{MBR|47 bytes|N/A|Master Boot Record}|{Part31|4.00 MB|30.77%|Partición Primaria}|{Part32|4.00 MB|30.77%|Partición Primaria}|{Part33|1.00 MB|7.69%|Partición Primaria}|{Espacio Libre|4.00 MB|30.77%|Espacio no particionado}", fillcolor=lightyellow];
+
+    title -> disk_info;
+    disk_info -> disk_structure;
+}

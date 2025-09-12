@@ -21,6 +21,69 @@ const (
 	WORST_FIT = "WF"
 )
 
+// calculateAvailableSpace calcula el espacio disponible en el disco
+func calculateAvailableSpace(mbr *structs.MBR) int32 {
+	diskSize := mbr.Mbr_size
+	const MBR_SIZE = 47 + (4 * 59) // MBR + espacio para 4 particiones
+
+	usedSpace := int32(MBR_SIZE)
+
+	// Sumar el espacio usado por particiones primarias y extendidas
+	for i := 0; i < 4; i++ {
+		if mbr.Partitions[i].Part_status[0] == 1 {
+			usedSpace += mbr.Partitions[i].Part_size
+		}
+	}
+
+	return diskSize - usedSpace
+}
+
+// calculateAvailableSpaceInExtended calcula el espacio disponible en una partición extendida
+func calculateAvailableSpaceInExtended(diskFile *os.File, extendedPartition *structs.PARTITION) (int32, error) {
+	if extendedPartition == nil {
+		return 0, errors.New("partición extendida no válida")
+	}
+
+	extendedStart := extendedPartition.Part_start
+	extendedSize := extendedPartition.Part_size
+	usedSpace := int32(0)
+
+	// Recorrer todas las particiones lógicas para calcular el espacio usado
+	currentPos := extendedStart
+	ebrSize := int32(30)
+
+	for {
+		// Leer el EBR en la posición actual
+		ebrData := make([]byte, ebrSize)
+		_, err := diskFile.ReadAt(ebrData, int64(currentPos))
+		if err != nil {
+			break
+		}
+
+		// Verificar si hay una partición lógica en esta posición
+		partSize := int32(ebrData[6]) | int32(ebrData[7])<<8 | int32(ebrData[8])<<16 | int32(ebrData[9])<<24
+		nextEBR := int32(ebrData[10]) | int32(ebrData[11])<<8 | int32(ebrData[12])<<16 | int32(ebrData[13])<<24
+
+		// Si no hay partición aquí, terminar
+		if partSize == 0 {
+			break
+		}
+
+		// Sumar el espacio usado (EBR + partición)
+		usedSpace += ebrSize + partSize
+
+		// Si no hay siguiente EBR, terminar
+		if nextEBR == 0 {
+			break
+		}
+
+		// Ir al siguiente EBR
+		currentPos = extendedStart + nextEBR
+	}
+
+	return extendedSize - usedSpace, nil
+}
+
 func CreatePartition(params *structs.FdiskParams) error {
 	diskFile, err := os.OpenFile(params.Path, os.O_RDWR, 0666)
 	if err != nil {
@@ -77,6 +140,42 @@ func CreatePartition(params *structs.FdiskParams) error {
 		}
 	}
 
+	// Calcular el tamaño solicitado en bytes
+	sizeInBytes := params.GetSizeInBytes()
+
+	// Verificar espacio disponible según el tipo de partición
+	if params.Type == LOGICAL {
+		// Para particiones lógicas, verificar espacio en la partición extendida
+		var extendedPartition *structs.PARTITION
+		for i := 0; i < 4; i++ {
+			if mbr.Partitions[i].Part_status[0] == 1 && mbr.Partitions[i].Part_type[0] == EXTENDED {
+				extendedPartition = &mbr.Partitions[i]
+				break
+			}
+		}
+
+		if extendedPartition == nil {
+			return errors.New("no se puede crear una partición lógica sin una partición extendida")
+		}
+
+		availableSpace, err := calculateAvailableSpaceInExtended(diskFile, extendedPartition)
+		if err != nil {
+			return fmt.Errorf("error al calcular espacio disponible en partición extendida: %v", err)
+		}
+
+		// Necesitamos espacio para el EBR (30 bytes) + la partición
+		requiredSpace := int32(30) + sizeInBytes
+		if availableSpace < requiredSpace {
+			return fmt.Errorf("no hay espacio suficiente en la partición extendida. Disponible: %d bytes, Requerido: %d bytes", availableSpace, requiredSpace)
+		}
+	} else {
+		// Para particiones primarias y extendidas, verificar espacio total del disco
+		availableSpace := calculateAvailableSpace(&mbr)
+		if availableSpace < sizeInBytes {
+			return fmt.Errorf("no hay espacio suficiente en el disco. Disponible: %d bytes, Requerido: %d bytes", availableSpace, sizeInBytes)
+		}
+	}
+
 	if params.Type == EXTENDED {
 		for i := 0; i < 4; i++ {
 			if mbr.Partitions[i].Part_status[0] == 1 && mbr.Partitions[i].Part_type[0] == EXTENDED {
@@ -99,8 +198,6 @@ func CreatePartition(params *structs.FdiskParams) error {
 	if params.Type != LOGICAL && mbr.Mbr_partitions >= 4 {
 		return errors.New("ya se alcanzó el número máximo de particiones primarias y extendidas (4)")
 	}
-
-	sizeInBytes := params.GetSizeInBytes()
 
 	if params.Type == LOGICAL {
 		// Implementación de particiones lógicas
@@ -208,15 +305,6 @@ func createLogicalPartition(diskFile *os.File, mbr *structs.MBR, params *structs
 		return errors.New("no se encontró una partición extendida para crear la partición lógica")
 	}
 
-	// Validar que el tamaño sea positivo y no exceda la partición extendida
-	if sizeInBytes <= 0 {
-		return errors.New("el tamaño de la partición lógica debe ser mayor que 0")
-	}
-
-	if sizeInBytes > extendedPartition.Part_size {
-		return errors.New("el tamaño de la partición lógica no puede ser mayor que el tamaño de la partición extendida")
-	}
-
 	// Verificar que no existe una partición con el mismo nombre (primarias/extendidas)
 	for i := 0; i < 4; i++ {
 		if mbr.Partitions[i].Part_status[0] == 1 {
@@ -229,8 +317,6 @@ func createLogicalPartition(diskFile *os.File, mbr *structs.MBR, params *structs
 
 	// Calcular el espacio disponible en la partición extendida
 	extendedStart := extendedPartition.Part_start
-	extendedSize := extendedPartition.Part_size
-	extendedEnd := extendedStart + extendedSize
 
 	// Buscar la posición donde crear la nueva partición lógica
 	currentPos := extendedStart
@@ -270,11 +356,6 @@ func createLogicalPartition(diskFile *os.File, mbr *structs.MBR, params *structs
 
 		// Ir al siguiente EBR
 		currentPos = extendedStart + nextEBR
-	}
-
-	// Verificar que hay espacio suficiente
-	if currentPos+ebrSize+sizeInBytes > extendedEnd {
-		return errors.New("no hay espacio suficiente en la partición extendida para crear la partición lógica")
 	}
 
 	// Crear el nuevo EBR

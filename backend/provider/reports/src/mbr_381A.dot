@@ -5,13 +5,19 @@ digraph MBR_Report {
     node [fontname="Arial", fontsize=10];
     edge [fontname="Arial"];
 
-    title [label="MBR Report\nDisco3.mia", fillcolor=lightblue, fontsize=14];
+    title [label="MBR Report\nDisco1.mia", fillcolor=lightblue, fontsize=14];
 
-    mbr_info [label="MBR Information\nDisk Size: 20.00 MB\nCreation Date: September 4, 2025\nTotal Partitions: 1", fillcolor=lightyellow];
+    mbr_info [label="MBR Information\nDisk Size: 50.00 MB\nCreation Date: September 10, 2025\nTotal Partitions: 4", fillcolor=lightyellow];
 
     primary_section [label="PRIMARY PARTITIONS", shape=box, style=filled, fillcolor=lightcyan];
-    primary_0 [label="Particion1\nType: Primary\nStatus: Active\nStart: 10362880\nSize: 9.88 MB\nFit: Worst Fit", fillcolor=lightgreen];
+    primary_0 [label="Part11\nType: Primary\nStatus: Active\nStart: 10485760\nSize: 10.00 MB\nFit: Best Fit", fillcolor=lightgreen];
     primary_section -> primary_0;
+    primary_1 [label="Part12\nType: Primary\nStatus: Active\nStart: 20971520\nSize: 10.00 MB\nFit: Best Fit", fillcolor=lightgreen];
+    primary_section -> primary_1;
+    primary_2 [label="Part13\nType: Primary\nStatus: Active\nStart: 31457280\nSize: 10.00 MB\nFit: Best Fit", fillcolor=lightgreen];
+    primary_section -> primary_2;
+    primary_3 [label="Part14\nType: Primary\nStatus: Active\nStart: 41943040\nSize: 10.00 MB\nFit: Best Fit", fillcolor=lightgreen];
+    primary_section -> primary_3;
 
     title -> mbr_info;
     mbr_info -> primary_section;

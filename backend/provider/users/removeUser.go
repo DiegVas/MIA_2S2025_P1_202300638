@@ -36,7 +36,7 @@ func RemoveUser(params *structs.RmUserParams) error {
 		for j := range fields {
 			fields[j] = strings.TrimSpace(fields[j])
 		}
-		if len(fields) == 5 && fields[1] == "U" && fields[4] == params.User && fields[0] != "0" {
+		if len(fields) == 5 && fields[1] == "U" && fields[3] == params.User && fields[0] != "0" {
 			lines[i] = fmt.Sprintf("0, U, %s, %s, %s", fields[2], fields[3], fields[4])
 			userFound = true
 			break

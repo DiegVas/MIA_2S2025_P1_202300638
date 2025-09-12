@@ -1,0 +1,15 @@
+digraph DISK_Report {
+    rankdir=TB;
+    node [shape=record, style=filled];
+    graph [fontname="Arial", fontsize=12];
+    node [fontname="Arial", fontsize=10];
+
+    title [label="DISK Report\nDisco5.mia", fillcolor=lightblue, fontsize=14];
+
+    disk_info [label="Tamaño Total: 20.00 MB|Espacio Libre: 50.00%", fillcolor=lightgray];
+
+    disk_structure [label="Estructura del Disco|{Componente|Tamaño|Porcentaje|Detalles}|{MBR|47 bytes|N/A|Master Boot Record}|{Part53|5.00 MB|25.00%|Partición Primaria}|{Part51|5.00 MB|25.00%|Partición Extendida}|{  └─ Part52|1.00 MB|5.00%|Partición Lógica}|{  └─ Part54|1.00 MB|5.00%|Partición Lógica}|{  └─ Part55|1.00 MB|5.00%|Partición Lógica}|{  └─ Part56|1.00 MB|5.00%|Partición Lógica}|{  └─ Libre (Ext)|1.00 MB|5.00%|Espacio libre en extendida}|{Espacio Libre|10.00 MB|50.00%|Espacio no particionado}", fillcolor=lightyellow];
+
+    title -> disk_info;
+    disk_info -> disk_structure;
+}

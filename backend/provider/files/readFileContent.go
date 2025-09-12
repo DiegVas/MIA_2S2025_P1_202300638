@@ -17,9 +17,7 @@ func ReadFileContent(filePath string) (string, error) {
 	session := structs.GetSession()
 	if !session.Active {
 		return "", errors.New("debe iniciar sesión para usar el comando CAT")
-	}
-
-	// Obtener la partición montada
+	} // Obtener la partición montada
 	mountManager := mounted.GetMountManager()
 	partition, partitionFound := mountManager.GetMountedPartition(session.ID)
 	if !partitionFound {

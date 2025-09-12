@@ -45,7 +45,7 @@ func ChangeUserGroup(params *structs.ChgrpParams) error {
 			groupExists = true
 		}
 
-		if len(fields) == 5 && fields[1] == "U" && fields[4] == params.User && fields[0] != "0" {
+		if len(fields) == 5 && fields[1] == "U" && fields[3] == params.User && fields[0] != "0" {
 			userFound = true
 			userLineIndex = i
 		}
