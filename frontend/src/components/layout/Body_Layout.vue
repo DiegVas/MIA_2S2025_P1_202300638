@@ -70,7 +70,7 @@ const handleExecuteAllCommands = async (commands) => {
 
   for (const command of commands) {
     await handleSendMessage(command);
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 500));
   }
 
   await scrollToBottom();
@@ -108,8 +108,18 @@ const getMessageClass = (type) => {
         class="messages-clean bg-green-500 hover:bg-green-600 px-4 py-2 rounded-t-lg cursor-pointer transition-all duration-300"
         @click="messages = []"
       >
-        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5" />
+        <svg
+          class="w-5 h-5 text-white"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 12h14m-7 7V5"
+          />
         </svg>
         <span class="text-white font-medium">Nuevo chat</span>
       </nav>
@@ -120,7 +130,9 @@ const getMessageClass = (type) => {
         >
           <h2 class="text-2xl font-bold mb-4 text-gray-200">¡Bienvenido!</h2>
           <p class="text-gray-400">Escribe un mensaje para comenzar...</p>
-          <p class="text-gray-500 text-sm mt-2">O carga un archivo .smia usando el botón 📎</p>
+          <p class="text-gray-500 text-sm mt-2">
+            O carga un archivo .smia usando el botón 📎
+          </p>
         </div>
 
         <div
@@ -136,22 +148,27 @@ const getMessageClass = (type) => {
           >
             <div class="message-header flex justify-between items-center mb-2">
               <div class="message-type-indicator flex items-center gap-2">
-                <span class="message-icon text-lg">{{ getMessageIcon(message.type) }}</span>
-                <span class="message-author text-sm font-semibold uppercase tracking-wide">{{
-                  message.type === "user"
-                    ? "Usuario"
-                    : message.type === "system"
-                    ? "Sistema"
-                    : message.type === "system-error"
-                    ? "Error del sistema"
-                    : message.type === "root"
-                    ? "Administrador Root"
-                    : message.type === "default"
-                    ? "Usuario Logueado"
-                    : message.type === "smia-file"
-                    ? "Archivo .smia"
-                    : "Desconocido"
+                <span class="message-icon text-lg">{{
+                  getMessageIcon(message.type)
                 }}</span>
+                <span
+                  class="message-author text-sm font-semibold uppercase tracking-wide"
+                  >{{
+                    message.type === "user"
+                      ? "Usuario"
+                      : message.type === "system"
+                      ? "Sistema"
+                      : message.type === "system-error"
+                      ? "Error del sistema"
+                      : message.type === "root"
+                      ? "Administrador Root"
+                      : message.type === "default"
+                      ? "Usuario Logueado"
+                      : message.type === "smia-file"
+                      ? "Archivo .smia"
+                      : "Desconocido"
+                  }}</span
+                >
               </div>
               <div class="message-time text-xs text-gray-400">
                 {{ message.timestamp.toLocaleTimeString() }}
