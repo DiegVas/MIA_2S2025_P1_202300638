@@ -32,9 +32,6 @@ func CreateGroup(params *structs.GroupParams) error {
 		return fmt.Errorf("error al leer el archivo de usuarios: %v", err)
 	}
 
-	fmt.Printf("DEBUG MKGRP: Contenido actual de users.txt:\n%s\n", usersFile)
-	fmt.Printf("DEBUG MKGRP: Intentando crear grupo: %s\n", params.Name)
-
 	lines := strings.Split(usersFile, "\n")
 	maxGID := 1 // GID mínimo (root es 1)
 
@@ -53,7 +50,6 @@ func CreateGroup(params *structs.GroupParams) error {
 		if len(fields) >= 3 && fields[1] == "G" {
 			// Verificar si el grupo existe y no está eliminado (GID > 0)
 			gid, _ := strconv.Atoi(fields[0])
-			fmt.Printf("DEBUG MKGRP: Encontrado grupo existente: GID=%d, nombre='%s'\n", gid, fields[2])
 
 			if gid > 0 && fields[2] == params.Name {
 				fmt.Printf("DEBUG MKGRP: El grupo '%s' ya existe con GID %d\n", params.Name, gid)
@@ -69,15 +65,11 @@ func CreateGroup(params *structs.GroupParams) error {
 	newGID := maxGID + 1
 	newGroupLine := fmt.Sprintf("%d, G, %s", newGID, params.Name)
 
-	fmt.Printf("DEBUG MKGRP: Creando nuevo grupo - GID: %d, Línea: '%s'\n", newGID, newGroupLine)
-
 	// Agregar la nueva línea al archivo
 	if !strings.HasSuffix(usersFile, "\n") {
 		usersFile += "\n"
 	}
 	usersFile += newGroupLine + "\n"
-
-	fmt.Printf("DEBUG MKGRP: Contenido actualizado de users.txt:\n%s\n", usersFile)
 
 	// Escribir el archivo actualizado
 	err = users.WriteUsersFile(partition.Path, partition.Name, usersFile)

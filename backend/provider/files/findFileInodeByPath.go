@@ -45,8 +45,6 @@ func findFileInodeByPath(file *os.File, path string, inodePos, blockPos int32) (
 		buffer := bytes.NewReader(inodeBytes)
 		binary.Read(buffer, binary.LittleEndian, &inode)
 
-		fmt.Printf("DEBUG FIND: Inodo %d leído, tipo: %d\n", currentInodeNum, inode.I_type)
-		fmt.Printf("DEBUG FIND: I_block valores: %v\n", inode.I_block[:5]) // Mostrar los primeros 5 bloques		// Si es el último componente, buscamos el archivo en el directorio actual
 		if i == len(components)-1 {
 			// El inodo actual debe ser un directorio para buscar el archivo
 			if inode.I_type != 1 {

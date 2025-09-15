@@ -64,7 +64,6 @@ func calculateAvailableSpaceInExtended(diskFile *os.File, extendedPartition *str
 		partSize := int32(ebrData[6]) | int32(ebrData[7])<<8 | int32(ebrData[8])<<16 | int32(ebrData[9])<<24
 		nextEBR := int32(ebrData[10]) | int32(ebrData[11])<<8 | int32(ebrData[12])<<16 | int32(ebrData[13])<<24
 
-		// Si no hay partición aquí, terminar
 		if partSize == 0 {
 			break
 		}

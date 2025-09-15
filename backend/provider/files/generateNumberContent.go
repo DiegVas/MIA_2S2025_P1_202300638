@@ -20,10 +20,3 @@ func generateNumberContent(size int32) string {
 	result := builder.String()
 	return result
 }
-
-func minLen(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}

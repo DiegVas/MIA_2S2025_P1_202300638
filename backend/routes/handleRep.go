@@ -50,7 +50,6 @@ func handleRep(w http.ResponseWriter, command string) {
 
 // HandleRep maneja peticiones HTTP directas (conservado para compatibilidad)
 func HandleRep(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("=== DEBUG REP - INICIO ===")
 	fmt.Printf("Método HTTP: %s\n", r.Method)
 	fmt.Printf("URL: %s\n", r.URL.String())
 	fmt.Printf("Headers: %v\n", r.Header)

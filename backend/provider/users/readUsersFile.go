@@ -72,7 +72,6 @@ func ReadUsersFile(diskPath, partitionName string) (string, error) {
 		return "", fmt.Errorf("error al leer el contenido: %v", err)
 	}
 
-	fmt.Printf("DEBUG READ: Contenido leído de users.txt:\n%s\n", content)
 	return content, nil
 }
 

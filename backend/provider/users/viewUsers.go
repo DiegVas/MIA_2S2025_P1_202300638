@@ -116,7 +116,7 @@ func ViewAllUsers(params *structs.ViewUsersParams) (*ViewUsersResponse, error) {
 func GenerateDetailedMessage(response *ViewUsersResponse) string {
 	var message strings.Builder
 
-	message.WriteString(fmt.Sprintf("=== INFORMACIÓN DE USUARIOS Y GRUPOS ===\n"))
+	message.WriteString("=== INFORMACIÓN DE USUARIOS Y GRUPOS ===\n")
 	message.WriteString(fmt.Sprintf("Total de usuarios: %d\n", len(response.Users)))
 	message.WriteString(fmt.Sprintf("Total de grupos: %d\n\n", len(response.Groups)))
 

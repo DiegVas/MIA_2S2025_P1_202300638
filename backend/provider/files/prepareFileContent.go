@@ -6,13 +6,6 @@ import (
 	"main/structs"
 )
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
 func prepareFileContent(params *structs.MkfileParams) (string, int32, error) {
 	var content string
 	var size int32

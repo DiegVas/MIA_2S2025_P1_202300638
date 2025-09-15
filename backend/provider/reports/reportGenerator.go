@@ -31,17 +31,14 @@ func GenerateReport(params *structs.RepParams) (string, error) {
 	case "block":
 		dotContent, err = generateBlockReport(params.ID)
 	case "bm_inode":
-		// Este es un reporte de texto, no DOT
 		return generateBMInodeTextReport(params)
 	case "bm_bloc":
-		// Este es un reporte de texto, no DOT
 		return generateBMBlockTextReport(params)
 	case "tree":
 		dotContent, err = generateTreeReport(params.ID)
 	case "sb":
 		dotContent, err = generateSuperblockReport(params.ID)
 	case "file":
-		// Este es un reporte de texto, no DOT
 		return generateFileTextReport(params)
 	case "ls":
 		dotContent, err = generateLSReport(params.ID, params.PathFileLS)

@@ -9,13 +9,6 @@ import (
 	"time"
 )
 
-func minLocal(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
 func CreateNewFile(file *os.File, fileName, content string, size int32, user *structs.User,
 	parentInodeNum, inodePos, blockPos, bmInodePos, bmBlockPos, inodeCount, blockCount int32) error {
 

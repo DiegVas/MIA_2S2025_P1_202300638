@@ -11,7 +11,6 @@ import (
 )
 
 func WriteUsersFile(diskPath, partitionName, content string) error {
-	fmt.Printf("DEBUG WRITE: Escribiendo users.txt con contenido:\n%s\n", content)
 
 	// ? Leer el MBR del disco
 	mbr, err := utils.ReadMBR(diskPath)
@@ -69,16 +68,11 @@ func WriteUsersFile(diskPath, partitionName, content string) error {
 	buffer := bytes.NewReader(inodeBytes)
 	binary.Read(buffer, binary.LittleEndian, &inode)
 
-	fmt.Printf("DEBUG WRITE: Tamaño anterior del inodo: %d\n", inode.I_size)
-
 	// ? Actualizar el tamaño del inodo
 	inode.I_size = int32(len(content))
 
-	fmt.Printf("DEBUG WRITE: Nuevo tamaño del inodo: %d\n", inode.I_size)
-
 	// Calcular cuántos bloques necesitamos
 	blocksNeeded := (len(content) + structs.FILE_CONTENT_SIZE - 1) / structs.FILE_CONTENT_SIZE
-	fmt.Printf("DEBUG WRITE: Necesitamos %d bloques para %d bytes\n", blocksNeeded, len(content))
 
 	// Asegurar que tenemos suficientes bloques asignados
 	err = ensureUsersFileBlocks(file, &inode, blocksNeeded, bmBlockPos, blockPos, blockCount)
@@ -100,13 +94,11 @@ func WriteUsersFile(diskPath, partitionName, content string) error {
 		return fmt.Errorf("error al escribir el inodo actualizado: %v", err)
 	}
 
-	fmt.Printf("DEBUG WRITE: users.txt escrito exitosamente con %d bloques\n", blocksNeeded)
 	return nil
 }
 
 // ensureUsersFileBlocks asegura que el inodo tenga suficientes bloques asignados
-func ensureUsersFileBlocks(file *os.File, inode *structs.Inode, blocksNeeded int, bmBlockPos, blockPos, blockCount int32) error {
-	fmt.Printf("DEBUG ENSURE: Verificando bloques - necesarios: %d, disponibles en inodo: %v\n", blocksNeeded, inode.I_block[:5])
+func ensureUsersFileBlocks(file *os.File, inode *structs.Inode, blocksNeeded int, bmBlockPos, _, blockCount int32) error {
 
 	// Soportamos hasta 12 bloques directos (suficiente para un archivo grande)
 	if blocksNeeded > 12 {
@@ -123,8 +115,6 @@ func ensureUsersFileBlocks(file *os.File, inode *structs.Inode, blocksNeeded int
 		}
 	}
 
-	fmt.Printf("DEBUG ENSURE: Bloques actuales: %d\n", currentBlocks)
-
 	if currentBlocks >= blocksNeeded {
 		return nil // Ya tenemos suficientes bloques
 	}
@@ -137,7 +127,6 @@ func ensureUsersFileBlocks(file *os.File, inode *structs.Inode, blocksNeeded int
 		}
 
 		inode.I_block[i] = newBlockNum
-		fmt.Printf("DEBUG ENSURE: Asignado bloque %d en posición I_block[%d]\n", newBlockNum, i)
 
 		// Marcar el bloque como ocupado en el bitmap
 		err = markBlockAsUsed(file, bmBlockPos, newBlockNum)
@@ -175,7 +164,6 @@ func writeContentToUsersBlocks(file *os.File, content string, inode *structs.Ino
 			return fmt.Errorf("error escribiendo bloque %d: %v", blockNum, err)
 		}
 
-		fmt.Printf("DEBUG WRITE_BLOCKS: Escribiendo %d bytes en bloque %d\n", end-start, blockNum)
 		writtenBytes = end
 	}
 

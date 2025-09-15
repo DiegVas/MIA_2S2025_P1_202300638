@@ -16,20 +16,17 @@ import (
 func FindOrCreateParentDirectory(file *os.File, dirPath string, session *structs.Session,
 	inodePos, blockPos, bmInodePos, bmBlockPos, inodeCount, blockCount int32, createParents bool) (int32, error) {
 
-	fmt.Printf("DEBUG FIND_OR_CREATE: Iniciando para path: '%s', createParents: %t\n", dirPath, createParents)
-
 	if dirPath == "" {
-		fmt.Printf("DEBUG FIND_OR_CREATE: Path vacío, retornando root (inodo 0)\n")
+
 		return 0, nil
 	}
 
 	components := strings.Split(dirPath, "/")
 	currentInodeNum := int32(0)
-	fmt.Printf("DEBUG FIND_OR_CREATE: Componentes del path: %v\n", components)
 
 	for i, component := range components {
 		if component == "" {
-			fmt.Printf("DEBUG FIND_OR_CREATE: Saltando componente vacío en posición %d\n", i)
+
 			continue
 		}
 
@@ -39,13 +36,11 @@ func FindOrCreateParentDirectory(file *os.File, dirPath string, session *structs
 		nextInodeNum, exists := FindFileInDirectoryByInode(file, component, currentInodeNum, inodePos, blockPos)
 
 		if !exists {
-			fmt.Printf("DEBUG FIND_OR_CREATE: Componente '%s' no existe\n", component)
+
 			if !createParents {
-				fmt.Printf("DEBUG FIND_OR_CREATE: createParents=false, retornando error\n")
+
 				return -1, fmt.Errorf("el directorio '%s' no existe", component)
 			}
-
-			fmt.Printf("DEBUG FIND_OR_CREATE: Creando directorio '%s'...\n", component)
 
 			//  ? Obtener la partición montada
 			mountManager := mounted.GetMountManager()
@@ -68,7 +63,7 @@ func FindOrCreateParentDirectory(file *os.File, dirPath string, session *structs
 				fmt.Printf("DEBUG FIND_OR_CREATE: Error creando directorio '%s': %v\n", component, err)
 				return -1, fmt.Errorf("error al crear directorio '%s': %v", component, err)
 			}
-			fmt.Printf("DEBUG FIND_OR_CREATE: Directorio '%s' creado exitosamente con inodo: %d\n", component, nextInodeNum)
+
 		} else {
 			fmt.Printf("DEBUG FIND_OR_CREATE: Componente '%s' ya existe con inodo: %d\n", component, nextInodeNum)
 		}
@@ -80,13 +75,11 @@ func FindOrCreateParentDirectory(file *os.File, dirPath string, session *structs
 }
 
 func FindFileInDirectoryByInode(file *os.File, name string, dirInodeNum, inodePos, blockPos int32) (int32, bool) {
-	fmt.Printf("DEBUG FIND_IN_DIR: Buscando '%s' en inodo %d\n", name, dirInodeNum)
 
 	// ? Leer el inodo del directorio
 	inodeBytes := make([]byte, structs.INODE_SIZE)
 	_, err := file.ReadAt(inodeBytes, int64(inodePos+(dirInodeNum*structs.INODE_SIZE)))
 	if err != nil {
-		fmt.Printf("DEBUG FIND_IN_DIR: Error leyendo inodo %d: %v\n", dirInodeNum, err)
 		return -1, false
 	}
 
@@ -94,18 +87,15 @@ func FindFileInDirectoryByInode(file *os.File, name string, dirInodeNum, inodePo
 	buffer := bytes.NewReader(inodeBytes)
 	binary.Read(buffer, binary.LittleEndian, &inode)
 
-	fmt.Printf("DEBUG FIND_IN_DIR: Inodo %d leído, tipo: %d, bloques: %v\n", dirInodeNum, inode.I_type, inode.I_block[:5])
-
 	// ? Buscar en todos los bloques directos del directorio
 	for i := 0; i < 12; i++ { // Los primeros 12 son bloques directos
 		if inode.I_block[i] != 0 {
 			blockNum := inode.I_block[i]
-			fmt.Printf("DEBUG FIND_IN_DIR: Revisando bloque %d (I_block[%d])\n", blockNum, i)
 
 			blockBytes := make([]byte, structs.BLOCK_SIZE)
 			_, err = file.ReadAt(blockBytes, int64(blockPos+(blockNum*structs.BLOCK_SIZE)))
 			if err != nil {
-				fmt.Printf("DEBUG FIND_IN_DIR: Error leyendo bloque %d: %v\n", blockNum, err)
+
 				continue
 			}
 
@@ -113,22 +103,16 @@ func FindFileInDirectoryByInode(file *os.File, name string, dirInodeNum, inodePo
 			buffer = bytes.NewReader(blockBytes)
 			binary.Read(buffer, binary.LittleEndian, &folderBlock)
 
-			fmt.Printf("DEBUG FIND_IN_DIR: Contenido del bloque %d:\n", blockNum)
 			// ? Buscar el archivo en las entradas de este bloque
-			for j, content := range folderBlock.B_content {
+			for _, content := range folderBlock.B_content {
 				entryName := strings.TrimRight(string(content.B_name[:]), "\x00")
-				if entryName != "" {
-					fmt.Printf("DEBUG FIND_IN_DIR: Entrada %d: '%s' -> inodo %d\n", j, entryName, content.B_inodo)
-				}
 				if entryName == name {
-					fmt.Printf("DEBUG FIND_IN_DIR: ¡Archivo encontrado! Retornando inodo %d\n", content.B_inodo)
 					return content.B_inodo, true
 				}
 			}
 		}
 	}
 
-	fmt.Printf("DEBUG FIND_IN_DIR: Archivo '%s' no encontrado en inodo %d\n", name, dirInodeNum)
 	return -1, false
 }
 
@@ -366,11 +350,6 @@ func CreateDirectory(params *structs.MkdirParams) error {
 	parentPath := getParentPath(params.Path)
 	dirName := getLastComponent(params.Path)
 
-	fmt.Printf("DEBUG MKDIR: Comando sin -p\n")
-	fmt.Printf("DEBUG MKDIR: Path completo: '%s'\n", params.Path)
-	fmt.Printf("DEBUG MKDIR: Parent path: '%s'\n", parentPath)
-	fmt.Printf("DEBUG MKDIR: Dir name: '%s'\n", dirName)
-
 	// Buscar el inodo del directorio padre
 	parentInodeNum, err := findFileInodeByPath(diskFile, parentPath, inodePos, blockPos)
 	if err != nil {
@@ -397,42 +376,36 @@ func CreateDirectory(params *structs.MkdirParams) error {
 
 // getParentPath obtiene la ruta del directorio padre
 func getParentPath(path string) string {
-	fmt.Printf("DEBUG getParentPath: Input path: '%s'\n", path)
 
 	if path == "/" {
-		fmt.Printf("DEBUG getParentPath: Path es raíz, retornando '/'\n")
+
 		return "/"
 	}
 
 	path = strings.TrimSuffix(path, "/")
-	fmt.Printf("DEBUG getParentPath: Path sin slash final: '%s'\n", path)
 
 	lastSlash := strings.LastIndex(path, "/")
-	fmt.Printf("DEBUG getParentPath: Última posición de '/': %d\n", lastSlash)
 
 	if lastSlash == 0 {
-		fmt.Printf("DEBUG getParentPath: lastSlash == 0, retornando '/'\n")
+
 		return "/"
 	}
 	if lastSlash == -1 {
-		fmt.Printf("DEBUG getParentPath: lastSlash == -1, retornando '/'\n")
+
 		return "/"
 	}
 
 	result := path[:lastSlash]
-	fmt.Printf("DEBUG getParentPath: Resultado: '%s'\n", result)
+
 	return result
 }
 
 // getLastComponent extrae el último componente de una ruta
 func getLastComponent(path string) string {
-	fmt.Printf("DEBUG getLastComponent: Input path: '%s'\n", path)
 
 	path = strings.TrimSuffix(path, "/")
-	fmt.Printf("DEBUG getLastComponent: Path sin slash final: '%s'\n", path)
 
 	parts := strings.Split(path, "/")
-	fmt.Printf("DEBUG getLastComponent: Parts: %v\n", parts)
 
 	if len(parts) == 0 {
 		fmt.Printf("DEBUG getLastComponent: No hay parts, retornando ''\n")
@@ -440,6 +413,5 @@ func getLastComponent(path string) string {
 	}
 
 	result := parts[len(parts)-1]
-	fmt.Printf("DEBUG getLastComponent: Resultado: '%s'\n", result)
 	return result
 }

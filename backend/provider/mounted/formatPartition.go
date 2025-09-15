@@ -137,16 +137,12 @@ func FormatPartition(params *structs.MkfsParams) error {
 		I_perm:  664,
 	}
 
-	fmt.Printf("DEBUG FORMAT: Creando inodo raíz con I_block[0]=%d, I_type=%d\n", rootInode.I_block[0], rootInode.I_type)
-
 	var rootInodeBuffer bytes.Buffer
 	binary.Write(&rootInodeBuffer, binary.LittleEndian, rootInode)
 	_, err = diskFile.WriteAt(rootInodeBuffer.Bytes(), int64(inodePos))
 	if err != nil {
 		return fmt.Errorf("error al escribir el inodo raíz: %v", err)
 	}
-
-	fmt.Printf("DEBUG FORMAT: Inodo raíz escrito en posición %d\n", inodePos)
 
 	usersInode := structs.Inode{
 		I_uid:   1,
@@ -179,19 +175,12 @@ func FormatPartition(params *structs.MkfsParams) error {
 	copy(rootFolder.B_content[2].B_name[:], "users.txt")
 	rootFolder.B_content[2].B_inodo = 1
 
-	fmt.Printf("DEBUG FORMAT: Creando directorio raíz con entradas:\n")
-	fmt.Printf("DEBUG FORMAT: - '.': inodo %d\n", rootFolder.B_content[0].B_inodo)
-	fmt.Printf("DEBUG FORMAT: - '..': inodo %d\n", rootFolder.B_content[1].B_inodo)
-	fmt.Printf("DEBUG FORMAT: - 'users.txt': inodo %d\n", rootFolder.B_content[2].B_inodo)
-
 	var rootFolderBuffer bytes.Buffer
 	binary.Write(&rootFolderBuffer, binary.LittleEndian, rootFolder)
 	_, err = diskFile.WriteAt(rootFolderBuffer.Bytes(), int64(blockPos)) // Bloque 0
 	if err != nil {
 		return fmt.Errorf("error al escribir el bloque de directorio raíz: %v", err)
 	}
-
-	fmt.Printf("DEBUG FORMAT: Bloque de directorio raíz escrito en posición %d\n", blockPos)
 
 	usersContent := "1, G, root \n1, U, root, root, 123 \n"
 

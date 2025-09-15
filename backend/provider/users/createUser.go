@@ -10,7 +10,6 @@ import (
 )
 
 func CreateUser(params *structs.UserParams) error {
-	fmt.Printf("DEBUG MKUSR: Intentando crear usuario: %s en grupo: %s\n", params.User, params.Grp)
 
 	session := structs.GetSession()
 	if !session.Active {
@@ -29,8 +28,6 @@ func CreateUser(params *structs.UserParams) error {
 		return fmt.Errorf("error al leer el archivo de usuarios: %v", err)
 	}
 
-	fmt.Printf("DEBUG MKUSR: Contenido actual de users.txt:\n%s\n", usersFile)
-
 	lines := strings.Split(usersFile, "\n")
 	maxUID := 1
 	groupExists := false
@@ -45,13 +42,13 @@ func CreateUser(params *structs.UserParams) error {
 		}
 		if len(fields) >= 3 && fields[1] == "G" && fields[0] != "0" && fields[2] == params.Grp {
 			groupExists = true
-			fmt.Printf("DEBUG MKUSR: Grupo '%s' encontrado con GID %s\n", params.Grp, fields[0])
+
 		}
 		if len(fields) == 5 && fields[1] == "U" {
 			// Verificar si el usuario ya existe (fields[3] es el nombre de usuario)
-			fmt.Printf("DEBUG MKUSR: Usuario encontrado: UID=%s, Usuario='%s'\n", fields[0], fields[3])
+
 			if fields[3] == params.User && fields[0] != "0" {
-				fmt.Printf("DEBUG MKUSR: El usuario '%s' ya existe con UID %s\n", params.User, fields[0])
+
 				return fmt.Errorf("el usuario '%s' ya existe", params.User)
 			}
 			uid, _ := strconv.Atoi(fields[0])
@@ -68,7 +65,6 @@ func CreateUser(params *structs.UserParams) error {
 	newUID := maxUID + 1
 	newUserLine := fmt.Sprintf("%d, U, %s, %s, %s", newUID, params.Grp, params.User, params.Pass)
 
-	fmt.Printf("DEBUG MKUSR: Creando nuevo usuario - UID: %d, Línea: '%s'\n", newUID, newUserLine)
 	if !strings.HasSuffix(usersFile, "\n") {
 		usersFile += "\n"
 	}
