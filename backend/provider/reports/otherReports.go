@@ -660,6 +660,12 @@ func generateFileSystemTree(file *os.File, superblock *structs.Superblock, dot *
 		return fmt.Errorf("error generando conexiones: %v", err)
 	}
 
+	// Generar conexiones desde bloques de directorio hacia inodos
+	err = generateDirectoryBlockToInodeConnections(file, superblock, inodeBitmap, blockBitmap, dot)
+	if err != nil {
+		return fmt.Errorf("error generando conexiones de directorio a inodo: %v", err)
+	}
+
 	return nil
 }
 
@@ -790,6 +796,56 @@ func generateIndirectBlockConnections(file *os.File, superblock *structs.Superbl
 			dot.WriteString(fmt.Sprintf("    block_%d:ptr_%d -> block_%d;\n", blockNum, i, pointer))
 		} else if pointer != 0 {
 			fmt.Printf("DEBUG TREE: Puntero invalido omitido: %d (rango: 0-%d, bitmap len: %d)\n", pointer, 10000, len(blockBitmap))
+		}
+	}
+
+	return nil
+}
+
+// generateDirectoryBlockToInodeConnections genera conexiones desde bloques de directorio hacia inodos
+func generateDirectoryBlockToInodeConnections(file *os.File, superblock *structs.Superblock, inodeBitmap, blockBitmap []byte, dot *strings.Builder) error {
+	fmt.Printf("DEBUG TREE: Generando conexiones de bloques de directorio a inodos...\n")
+
+	// Recorrer bloques utilizados que son de tipo directorio
+	for i := int32(0); i < superblock.S_blocks_count; i++ {
+		if i < int32(len(blockBitmap)) && blockBitmap[i] == 1 {
+			// Leer el bloque para determinar si es un directorio
+			blockData, blockType, err := readBlockAt(file, i, superblock)
+			if err != nil {
+				continue
+			}
+
+			// Solo procesar bloques de directorio
+			if blockType == "Directorio" {
+				fmt.Printf("DEBUG TREE: Procesando conexiones del bloque de directorio %d\n", i)
+				err = generateDirectoryEntryConnections(i, blockData, inodeBitmap, dot)
+				if err != nil {
+					fmt.Printf("DEBUG TREE: Error procesando entradas del bloque %d: %v\n", i, err)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// generateDirectoryEntryConnections genera conexiones desde entradas de directorio hacia inodos
+func generateDirectoryEntryConnections(blockNum int32, blockData []byte, inodeBitmap []byte, dot *strings.Builder) error {
+	var folderBlock structs.FolderBlock
+	buffer := bytes.NewReader(blockData)
+	err := binary.Read(buffer, binary.LittleEndian, &folderBlock)
+	if err != nil {
+		return err
+	}
+
+	for i, content := range folderBlock.B_content {
+		entryName := strings.TrimRight(string(content.B_name[:]), "\x00")
+		inodeNum := content.B_inodo
+
+		// Solo crear conexión si la entrada no está vacía y el inodo existe
+		if entryName != "" && inodeNum >= 0 && inodeNum < int32(len(inodeBitmap)) && inodeBitmap[inodeNum] == 1 {
+			fmt.Printf("DEBUG TREE: Conexion de directorio: block_%d:entry_%d -> inode_%d (%s)\n", blockNum, i, inodeNum, entryName)
+			dot.WriteString(fmt.Sprintf("    block_%d:entry_%d -> inode_%d;\n", blockNum, i, inodeNum))
 		}
 	}
 

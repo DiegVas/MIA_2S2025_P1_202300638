@@ -7,28 +7,28 @@ digraph Inode_Report {
 
     title [label="INODE Report\nParticion: 381A", fillcolor=lightblue, fontsize=14];
 
-    inode_0 [label="INODO 0\n(Directorio)|{UID: 0 | GID: 0}|{Tamano: 64 bytes | Permisos: 1230}|{Directos: [6]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightgreen];
-    inode_1 [label="INODO 1\n(Archivo)|{UID: 1 | GID: 1}|{Tamano: 172 bytes | Permisos: 1230}|{Directos: [1,2,3]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightcyan];
-    inode_2 [label="INODO 2\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [4]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightgreen];
-    inode_3 [label="INODO 3\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [5]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightgreen];
-    inode_4 [label="INODO 4\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [7,34]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightgreen];
-    inode_5 [label="INODO 5\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [8]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightgreen];
-    inode_6 [label="INODO 6\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [9,31]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightgreen];
-    inode_7 [label="INODO 7\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [10]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightgreen];
-    inode_8 [label="INODO 8\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [11]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightgreen];
-    inode_9 [label="INODO 9\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [12]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightgreen];
-    inode_10 [label="INODO 10\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [13]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightgreen];
-    inode_11 [label="INODO 11\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [14]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightgreen];
-    inode_12 [label="INODO 12\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [15]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightgreen];
-    inode_13 [label="INODO 13\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [16]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightgreen];
-    inode_14 [label="INODO 14\n(Archivo)|{UID: 1 | GID: 1}|{Tamano: 75 bytes | Permisos: 1230}|{Directos: [17,18]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightcyan];
-    inode_15 [label="INODO 15\n(Archivo)|{UID: 1 | GID: 1}|{Tamano: 768 bytes | Permisos: 1230}|{Directos: [19,20,21...9 más]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightcyan];
-    inode_16 [label="INODO 16\n(Archivo)|{UID: 1 | GID: 1}|{Tamano: 6 bytes | Permisos: 1230}|{Directos: [32]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightcyan];
-    inode_17 [label="INODO 17\n(Archivo)|{UID: 1 | GID: 1}|{Tamano: 0 bytes | Permisos: 1230}|{Directos: [33]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightcyan];
-    inode_18 [label="INODO 18\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [35]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightgreen];
-    inode_19 [label="INODO 19\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [36]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightgreen];
-    inode_20 [label="INODO 20\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [37]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightgreen];
-    inode_21 [label="INODO 21\n(Archivo)|{UID: 1 | GID: 1}|{Tamano: 0 bytes | Permisos: 1230}|{Directos: [38]}|{A-time: 2025-09-12 12:22}|{C-time: 2025-09-12 12:22}|{M-time: 2025-09-12 12:22}", fillcolor=lightcyan];
+    inode_0 [label="INODO 0\n(Directorio)|{UID: 0 | GID: 0}|{Tamano: 64 bytes | Permisos: 1230}|{Directos: [6]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightgreen];
+    inode_1 [label="INODO 1\n(Archivo)|{UID: 1 | GID: 1}|{Tamano: 172 bytes | Permisos: 1230}|{Directos: [1,2,3]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightcyan];
+    inode_2 [label="INODO 2\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [4]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightgreen];
+    inode_3 [label="INODO 3\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [5]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightgreen];
+    inode_4 [label="INODO 4\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [7,34]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightgreen];
+    inode_5 [label="INODO 5\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [8]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightgreen];
+    inode_6 [label="INODO 6\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [9,31]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightgreen];
+    inode_7 [label="INODO 7\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [10]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightgreen];
+    inode_8 [label="INODO 8\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [11]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightgreen];
+    inode_9 [label="INODO 9\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [12]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightgreen];
+    inode_10 [label="INODO 10\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [13]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightgreen];
+    inode_11 [label="INODO 11\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [14]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightgreen];
+    inode_12 [label="INODO 12\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [15]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightgreen];
+    inode_13 [label="INODO 13\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [16]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightgreen];
+    inode_14 [label="INODO 14\n(Archivo)|{UID: 1 | GID: 1}|{Tamano: 75 bytes | Permisos: 1230}|{Directos: [17,18]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightcyan];
+    inode_15 [label="INODO 15\n(Archivo)|{UID: 1 | GID: 1}|{Tamano: 768 bytes | Permisos: 1230}|{Directos: [19,20,21...9 más]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightcyan];
+    inode_16 [label="INODO 16\n(Archivo)|{UID: 1 | GID: 1}|{Tamano: 6 bytes | Permisos: 1230}|{Directos: [32]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightcyan];
+    inode_17 [label="INODO 17\n(Archivo)|{UID: 1 | GID: 1}|{Tamano: 0 bytes | Permisos: 1230}|{Directos: [33]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightcyan];
+    inode_18 [label="INODO 18\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [35]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightgreen];
+    inode_19 [label="INODO 19\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [36]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightgreen];
+    inode_20 [label="INODO 20\n(Directorio)|{UID: 1 | GID: 1}|{Tamano: 64 bytes | Permisos: 1363}|{Directos: [37]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightgreen];
+    inode_21 [label="INODO 21\n(Archivo)|{UID: 1 | GID: 1}|{Tamano: 0 bytes | Permisos: 1230}|{Directos: [38]}|{A-time: 2025-09-15 12:09}|{C-time: 2025-09-15 12:09}|{M-time: 2025-09-15 12:09}", fillcolor=lightcyan];
 
     // Conexiones de la lista enlazada
     title -> inode_0;
