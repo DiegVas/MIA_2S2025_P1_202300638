@@ -41,12 +41,6 @@ func generateBMInodeTextReport(params *structs.RepParams) (string, error) {
 	var content strings.Builder
 	content.WriteString("REPORTE DE BITMAP DE INODOS\n")
 	content.WriteString("===========================\n")
-	content.WriteString(fmt.Sprintf("Particion: %s\n", params.ID))
-	content.WriteString(fmt.Sprintf("Total de inodos: %d\n", superblock.S_inodes_count))
-	content.WriteString(fmt.Sprintf("Inodos libres: %d\n", superblock.S_free_inodes_count))
-	content.WriteString(fmt.Sprintf("Inodos utilizados: %d\n\n", superblock.S_inodes_count-superblock.S_free_inodes_count))
-	content.WriteString("BITMAP (0=libre, 1=ocupado):\n")
-	content.WriteString("============================\n")
 
 	// Mostrar bitmap con 20 registros por línea
 	for i := 0; i < len(inodeBitmap); i += 20 {

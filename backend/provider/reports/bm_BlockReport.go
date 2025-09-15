@@ -39,12 +39,6 @@ func generateBMBlockTextReport(params *structs.RepParams) (string, error) {
 	var content strings.Builder
 	content.WriteString("REPORTE DE BITMAP DE BLOQUES\n")
 	content.WriteString("============================\n")
-	content.WriteString(fmt.Sprintf("Partición: %s\n", params.ID))
-	content.WriteString(fmt.Sprintf("Total de bloques: %d\n", superblock.S_blocks_count))
-	content.WriteString(fmt.Sprintf("Bloques libres: %d\n", superblock.S_free_blocks_count))
-	content.WriteString(fmt.Sprintf("Bloques utilizados: %d\n\n", superblock.S_blocks_count-superblock.S_free_blocks_count))
-	content.WriteString("BITMAP (0=libre, 1=ocupado):\n")
-	content.WriteString("=============================\n")
 
 	// Mostrar bitmap con 20 registros por línea
 	for i := 0; i < len(blockBitmap); i += 20 {
