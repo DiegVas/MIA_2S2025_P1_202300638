@@ -32,7 +32,7 @@ func GenerateReport(params *structs.RepParams) (string, error) {
 		dotContent, err = generateBlockReport(params.ID)
 	case "bm_inode":
 		return generateBMInodeTextReport(params)
-	case "bm_bloc":
+	case "bm_block":
 		return generateBMBlockTextReport(params)
 	case "tree":
 		dotContent, err = generateTreeReport(params.ID)

@@ -39,7 +39,7 @@ func ParseRep(input string) (*structs.RepParams, error) {
 		switch param {
 		case "name":
 			// Validar nombres de reporte válidos
-			validNames := []string{"mbr", "disk", "inode", "block", "bm_inode", "bm_bloc", "tree", "sb", "file", "ls"}
+			validNames := []string{"mbr", "disk", "inode", "block", "bm_inode", "bm_block", "tree", "sb", "file", "ls"}
 			isValid := false
 			for _, validName := range validNames {
 				if strings.ToLower(value) == validName {

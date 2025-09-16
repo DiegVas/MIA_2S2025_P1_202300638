@@ -38,7 +38,7 @@ digraph Block_Report {
     block_28 [label="BLOQUE 28\n(ARCHIVO)\n0123456789012345678901234567890123456789012345678901234567890123", fillcolor=lightyellow];
     block_29 [label="BLOQUE 29\n(ARCHIVO)\n4567890123456789012345678901234567890123456789012345678901234567", fillcolor=lightyellow];
     block_30 [label="BLOQUE 30\n(CARPETA)\n[0] Tarea2.txt → 14\n[1] Tarea3.txt → 15", fillcolor=lightyellow];
-    block_31 [label="BLOQUE 31\n(ARCHIVO)\nDiego", fillcolor=lightyellow];
+    block_31 [label="BLOQUE 31\n(ARCHIVO)\nDiego Alejandro", fillcolor=lightyellow];
     block_32 [label="BLOQUE 32\n(ARCHIVO)\n(bloque vaco)", fillcolor=lightyellow];
     block_33 [label="BLOQUE 33\n(PUNTEROS)\n[0] → 1949184354\n[1] → 29816\n[3] → 16", fillcolor=lightyellow];
     block_34 [label="BLOQUE 34\n(CARPETA)\n[0] . → 17\n[1] .. → 7\n[2] proyectos → 18", fillcolor=lightyellow];

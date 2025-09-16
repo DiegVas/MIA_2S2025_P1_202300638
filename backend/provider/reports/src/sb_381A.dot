@@ -6,7 +6,7 @@ digraph Superblock_Report {
 
     title [label="SuperBloque Particion 381A\nen disco /home/spuma/Calificacion_MIA/Discos/Disco1.mia", shape=box, style=filled, fillcolor=lightblue];
 
-    superblock [label="{SUPERBLOQUE|Tipo de Sistema de Archivos|EXT2\l|Número total de inodos|4096\l|Número total de bloques|9728\l|Número de bloques libres|9726\l|Número de inodos libres|4094\l|Última fecha de montaje|2025-09-15 17:12\l|Número mágico|Válido (0xEF53)\l|Tamano del inodo|128 bytes\l|Tamano del bloque|1024 bytes\l|Primer inodo libre|2\l|Primer bloque libre|2\l|Inicio bitmap de inodos|10485848\l|Inicio bitmap de bloques|10489944\l|Inicio tabla de inodos|10499672\l|Inicio tabla de bloques|0\l}", style=filled, fillcolor=lightgray];
+    superblock [label="{SUPERBLOQUE|Tipo de Sistema de Archivos|EXT2\l|Número total de inodos|4096\l|Número total de bloques|9728\l|Número de bloques libres|9726\l|Número de inodos libres|4094\l|Última fecha de montaje|2025-09-15 18:04\l|Número mágico|Válido (0xEF53)\l|Tamano del inodo|128 bytes\l|Tamano del bloque|1024 bytes\l|Primer inodo libre|2\l|Primer bloque libre|2\l|Inicio bitmap de inodos|10485848\l|Inicio bitmap de bloques|10489944\l|Inicio tabla de inodos|10499672\l|Inicio tabla de bloques|0\l}", style=filled, fillcolor=lightgray];
 
     title -> superblock;
 
